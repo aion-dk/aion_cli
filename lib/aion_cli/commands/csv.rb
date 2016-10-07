@@ -88,7 +88,6 @@ module AionCLI
 
             # Join header rows discarding duplicate from b
             headers_b = rows_b.shift
-            headers_b.delete_at(join_index_b)
 
             out << headers_a + headers_b
 
