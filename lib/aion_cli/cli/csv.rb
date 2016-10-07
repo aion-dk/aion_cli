@@ -5,7 +5,7 @@ module AionCLI
     class Csv < Thor
       include AionCLI::CsvHelper
 
-      desc "csv uniform CSV_FILE", "Convert to semi-colon separated UTF-8 csv file"
+      desc 'uniform CSV_FILE', 'Convert to semi-colon separated UTF-8 csv file'
       long_desc <<-LONG_DESC
         Guesses the encoding and column separator of CSV_FILE.\n
         Outputs the file as a semi-colon separated UTF-8 CSV file.
@@ -22,7 +22,7 @@ module AionCLI
         end
       end
 
-      desc "csv slice CSV_FILE [SELECTION]", "Filter columns for csv file"
+      desc 'slice CSV_FILE [SELECTION]', 'Filter columns for csv file'
       long_desc <<-LONG_DESC
         Guesses the encoding and column separator of CSV_FILE.\n
         Outputs the file as a semi-colon separated UTF-8 CSV file, with only selected columns.
@@ -49,7 +49,7 @@ module AionCLI
         end
       end
 
-      desc 'csv join CSV_FILE_1 CSV_FILE_2 [JOIN_EXPRESSION]', 'join two CSV files into one'
+      desc 'join CSV_FILE_1 CSV_FILE_2 [JOIN_EXPRESSION]', 'join two CSV files into one'
       long_desc <<-LONG_DESC
         Guesses the encoding and column separator of CSV_FILE_1 and CSV_FILE_2.\n
         Outputs a new CSV file as a semi-colon separated UTF-8 CSV file.
