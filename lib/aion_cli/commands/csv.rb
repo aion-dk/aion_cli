@@ -124,6 +124,91 @@ module AionCLI
 
       end
 
+
+
+      desc 'count CSV_FILE GROUP_BY SUM', 'Count votes with weights'
+
+      long_desc '...'
+
+      def count( path, group_by = nil, sum = nil )
+        absolute_path = File.absolute_path(path)
+        rows = read_csv(absolute_path)
+
+        if group_by =~ /^\d+(,\d+)+$/ and sum =~ /^\d+$/
+
+          group_by_indexes = group_by.split(',').map(&:to_i)
+          sum_index = sum.to_i
+
+          headers = rows.shift
+
+          result = {}
+          rows.each do |row|
+            key = group_by_indexes.map { |i| row[i] }
+
+            sum_value = row[sum_index]
+            raise Thor::Error, 'Non num value in sum' unless sum_value =~ /^\d+$/
+
+            result[key] ||= 0
+            result[key] += sum_value.to_i
+          end
+
+
+          $stdout << CSV.generate(col_sep: ';') do |csv|
+
+            new_headers = group_by_indexes.map { |i| headers[i] }
+            new_headers << 'sum of votes'
+
+            csv << new_headers
+
+            result.each do |key, sum|
+              csv << key + [sum]
+            end
+
+          end
+
+        else
+
+          headers = rows.shift
+          headers.each_with_index do |name, index|
+            puts "#{index}) #{name}"
+          end
+
+          raise Thor::RequiredArgumentMissingError, 'Invalid values for GROUP_BY and/or SUM'
+        end
+
+      end
+
+      desc 'sort CSV_FILE [SORT_INDEXES]', 'Sorts a CSV file given a list of indexes'
+
+      def sort( path, sort_by = nil )
+        absolute_path = File.absolute_path(path)
+        rows = read_csv(absolute_path)
+
+        if sort_by =~ /^\d+(,\d+)+$/
+          sort_by_indexes = sort_by.split(',').map(&:to_i)
+          headers = rows.shift
+          new_rows = rows.sort_by { |row| sort_by_indexes.map { |i|
+            value = row[i]
+            value =~ /^\d+$/ ? value.to_i : value
+          }}
+
+          $stdout << CSV.generate(col_sep: ';') do |csv|
+            csv << headers
+            new_rows.each do |row|
+              csv << row
+            end
+          end
+
+        else
+          headers = rows.shift
+          headers.each_with_index do |name, index|
+            puts "#{index}) #{name}"
+          end
+
+          puts 'SORT_BY is missing. Specify the columns to sort by. Fx. 0,3,2'
+        end
+      end
+
     end
   end
 end
