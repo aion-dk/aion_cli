@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby -U
+
+require 'aion_cli'
+
+AionCLI::Main.start
