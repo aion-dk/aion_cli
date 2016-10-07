@@ -10,8 +10,10 @@ Gem::Specification.new do |spec|
   spec.email         = ['michael.andersen.85@gmail.com']
 
   spec.summary       = %q{A small collection of scripts used by Aion Aps}
-  spec.description   = %q{A small collection of scripts used by Aion Aps}
+  spec.description   = %q{A small collection of scripts used by Aion Aps. Mainly for handling csv files.}
   spec.homepage      = 'https://github.com/aion-dk/aion_cli'
+
+  spec.license       = 'Aion'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -26,8 +28,8 @@ Gem::Specification.new do |spec|
 
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'thor'
-  spec.add_dependency 'charlock_holmes'
+  spec.add_dependency 'thor', '~> 0.19.1'
+  spec.add_dependency 'charlock_holmes', '~> 0.7.3'
 
   spec.add_development_dependency 'bundler', '~> 1.12'
   spec.add_development_dependency 'rake', '~> 10.0'
