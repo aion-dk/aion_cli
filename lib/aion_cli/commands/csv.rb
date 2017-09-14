@@ -11,7 +11,7 @@ module AionCLI
         Outputs the file as a semi-colon separated UTF-8 CSV file.
       LONG_DESC
 
-      def uniform( path )
+      def uniform(path)
         absolute_path = File.absolute_path(path)
         rows = read_csv(absolute_path)
 
@@ -29,7 +29,7 @@ module AionCLI
       LONG_DESC
 
 
-      def slice( path, columns = nil )
+      def slice(path, columns = nil)
         absolute_path = File.absolute_path(path)
         rows = read_csv(absolute_path)
 
@@ -37,7 +37,7 @@ module AionCLI
           column_indexes = columns.split(',').map(&:to_i)
           $stdout << CSV.generate(col_sep: ';') do |out|
             rows.each do |row|
-              out << column_indexes.map { |i| row[i] }
+              out << column_indexes.map {|i| row[i]}
             end
           end
 
@@ -125,12 +125,11 @@ module AionCLI
       end
 
 
-
       desc 'count CSV_FILE GROUP_BY SUM', 'Count votes with weights'
 
       long_desc '...'
 
-      def count( path, group_by = nil, sum = nil )
+      def count(path, group_by = nil, sum = nil)
         absolute_path = File.absolute_path(path)
         rows = read_csv(absolute_path)
 
@@ -143,7 +142,7 @@ module AionCLI
 
           result = {}
           rows.each do |row|
-            key = group_by_indexes.map { |i| row[i] }
+            key = group_by_indexes.map {|i| row[i]}
 
             sum_value = row[sum_index]
             raise Thor::Error, 'Non num value in sum' unless sum_value =~ /^\d+$/
@@ -155,7 +154,7 @@ module AionCLI
 
           $stdout << CSV.generate(col_sep: ';') do |csv|
 
-            new_headers = group_by_indexes.map { |i| headers[i] }
+            new_headers = group_by_indexes.map {|i| headers[i]}
             new_headers << 'sum of votes'
 
             csv << new_headers
@@ -180,14 +179,14 @@ module AionCLI
 
       desc 'sort CSV_FILE [SORT_INDEXES]', 'Sorts a CSV file given a list of indexes'
 
-      def sort( path, sort_by = nil )
+      def sort(path, sort_by = nil)
         absolute_path = File.absolute_path(path)
         rows = read_csv(absolute_path)
 
         if sort_by =~ /^\d+(,\d+)+$/
           sort_by_indexes = sort_by.split(',').map(&:to_i)
           headers = rows.shift
-          new_rows = rows.sort_by { |row| sort_by_indexes.map { |i|
+          new_rows = rows.sort_by {|row| sort_by_indexes.map {|i|
             value = row[i]
             value =~ /^\d+$/ ? value.to_i : value
           }}
@@ -207,6 +206,48 @@ module AionCLI
 
           puts 'SORT_BY is missing. Specify the columns to sort by. Fx. 0,3,2'
         end
+      end
+
+      desc 'filter_cpr CSV_FILE_1 CPR_FILE CPR_COLUMN_NO', 'Filter records from CSV_FILE_1 of CPRs found in CPR_FILE'
+      long_desc <<-LONG_DESC
+        Guesses the encoding and column separator of CSV_FILE_1 and CPR_FILE.\n
+        Outputs a new CSV file as a semi-colon separated UTF-8 CSV file.
+
+        Filter records from CSV_FILE_1 if CPR found in CPR_FILE.
+        CPRs in CPR_FILE is cleaned
+        CPR column in file 2 is guessed
+      LONG_DESC
+
+      def filter_cpr(path_a, path_b, cpr_column)
+
+        cpr_regex = /\d{6}-?\d{4}/
+        clean_up_fn = lambda {|x| cpr_regex.match(x)[0].sub('-', '')}
+
+        absolute_path_a = File.absolute_path(path_a)
+        absolute_path_b = File.absolute_path(path_b)
+
+        rows_a = read_csv(absolute_path_a)
+        rows_b = read_csv(absolute_path_b)
+
+        cprs_set = Set.new rows_b.map { |x| clean_up_fn.call(x[0]) if x[0].size }
+
+        headers_a = rows_a.shift
+
+        output = CSV.generate(col_sep: ';') do |out|
+
+          out << headers_a
+
+          rows_a.each do |recs|
+            cpr = recs[cpr_column.to_i]
+            unless cprs_set.include?(clean_up_fn.call(cpr))
+              out << recs
+            end
+          end
+
+        end
+
+        puts output
+
       end
 
     end
