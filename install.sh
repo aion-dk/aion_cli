@@ -33,7 +33,16 @@ asdf install
 
 brew install icu4c
 
+# Install bundler
+
+gem install bundler
+
 # Configure Bundler to always use the correct arguments when installing
 
 bundle config build.charlock_holmes --with-icu-dir=/usr/local/opt/icu4c
 
+# Installation
+
+gem sources -a https://satan:666@gems.valgservice.dk/
+
+gem install aion_cli
