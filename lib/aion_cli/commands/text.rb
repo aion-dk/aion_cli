@@ -44,6 +44,13 @@ module AionCLI
         end
 
       end
+
+      desc 'to_lf TEXT_FILE', 'Convert CR or CRLF to LF'
+      def to_lf(path)
+        absolute_path = File.absolute_path(path)
+        $stdout << read_file(absolute_path).gsub(/\r\n?/, "\n")
+      end
+
     end
   end
 end

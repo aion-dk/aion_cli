@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'thor', '~> 0.19.1'
   spec.add_dependency 'charlock_holmes', '~> 0.7.3'
   spec.add_dependency 'roo', '~> 2.5.0'
+  spec.add_dependency 'faker', '~> 1.8.7'
 
   spec.add_development_dependency 'bundler', '~> 1.12'
   spec.add_development_dependency 'rake', '~> 10.0'

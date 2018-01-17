@@ -22,7 +22,7 @@ module AionCLI
           xlsx.default_sheet = xlsx.sheets[sheet_number]
         end
 
-        CSV.open(target_csv_path, 'wb') do |csv|
+        CSV.open(target_csv_path, 'wb', col_sep: ';') do |csv|
           xlsx.each_row_streaming() do |row|
             csv << row
           end

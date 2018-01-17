@@ -3,6 +3,7 @@ require 'aion_cli/commands/text'
 require 'aion_cli/commands/csv'
 require 'aion_cli/commands/excel'
 require 'aion_cli/commands/random'
+require 'aion_cli/commands/test_data'
 
 module AionCLI
   class Main < Thor
@@ -18,6 +19,9 @@ module AionCLI
 
     desc 'excel COMMANDS', 'excel helpers'
     subcommand 'excel', AionCLI::CLI::Excel
+
+    desc 'testdata COMMANDS', 'testdata generators'
+    subcommand 'testdata', AionCLI::CLI::TestData
 
   end
 end
