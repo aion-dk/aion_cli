@@ -26,7 +26,8 @@ module AionCLI
             Encoding::UTF_8
         ]
 
-        districts = (1..10).map { |n| "District #{n}"}
+        districts = (1..5).map { |n| "District #{n}"}
+
         age_groups = [
             '18-30 år',
             '18-30 år',
