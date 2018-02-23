@@ -4,6 +4,7 @@ require 'aion_cli/commands/csv'
 require 'aion_cli/commands/excel'
 require 'aion_cli/commands/random'
 require 'aion_cli/commands/test_data'
+require 'aion_cli/commands/dawa'
 
 module AionCLI
   class Main < Thor
@@ -22,6 +23,9 @@ module AionCLI
 
     desc 'testdata COMMANDS', 'testdata generators'
     subcommand 'testdata', AionCLI::CLI::TestData
+
+    desc 'dawa COMMANDS', 'DAWA helpers'
+    subcommand 'dawa', AionCLI::CLI::Dawa
 
   end
 end
