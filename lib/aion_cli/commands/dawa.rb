@@ -6,18 +6,20 @@ module AionCLI
     class Dawa < Thor
       include AionCLI::CsvHelper
 
-      desc 'scan_address CSV_FILE', 'Convert to semi-colon separated UTF-8 csv file'
+      desc 'scan_address CSV_FILE [COLUMN]', 'Convert to semi-colon separated UTF-8 csv file'
 
-      def validate_address(path)
+      def validate_address(path, column = nil)
         absolute_path = File.absolute_path(path)
         rows = read_csv(absolute_path, col_sep: ';')
 
         dawa_client = AionCLI::DAWAClient.instance
 
+        column_index = column.to_i
+
         rows.each do |row|
-          input_string = row[0]
+          input_string = row[column_index]
           dawa_guid = dawa_client.address_guid(input_string)
-          $stdout << CSV.generate_line([input_string,dawa_guid], col_sep: ';')
+          $stdout << CSV.generate_line([*row,dawa_guid], col_sep: ';')
           $stdout.flush
         end
 
