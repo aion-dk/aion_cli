@@ -250,6 +250,30 @@ module AionCLI
 
       end
 
+      desc 'split CSV_FILE LINES', 'Splits a csv file into multiple files'
+
+      def split(path, lines_s)
+        absolute_path = File.absolute_path(path)
+        rows = read_csv(absolute_path)
+
+        lines = lines_s.to_i
+        raise 'LINES must be greater than zero' unless lines > 0
+
+        dirname = File.dirname(absolute_path)
+        extname = File.extname(absolute_path)
+        basename = File.basename(absolute_path, extname)
+        target_folder = File.join(dirname, "#{basename}_split_#{Time.now.to_i}")
+
+        Dir.mkdir(target_folder)
+
+        rows.each_slice(lines).each_with_index do |slice, index|
+          filename = File.join(target_folder, "slice_#{index}.csv")
+          CSV.open(filename, 'wb', col_sep: ';') do |csv|
+            slice.each { |row| csv << row }
+          end
+        end
+      end
+
     end
   end
 end
