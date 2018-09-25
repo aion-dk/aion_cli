@@ -25,6 +25,7 @@ module AionCLI
       scrub_object = scrub(address_string)
       if ['A','B'].include?(scrub_object['kategori'])
         a = scrub_object['resultater'][0]['aktueladresse']
+        a = scrub_object['resultater'][0]['adresse'] if a.nil?
         [1,3].include?(a['status']) ? a : nil
       end
     end

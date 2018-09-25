@@ -6,7 +6,7 @@ module AionCLI
     class Dawa < Thor
       include AionCLI::CsvHelper
 
-      desc 'scan_address CSV_FILE [COLUMN]', 'Convert to semi-colon separated UTF-8 csv file'
+      desc 'validate_address CSV_FILE [COLUMN]', 'Convert to semi-colon separated UTF-8 csv file'
 
       def validate_address(path, column = nil)
         absolute_path = File.absolute_path(path)
@@ -14,13 +14,19 @@ module AionCLI
 
         dawa_client = AionCLI::DAWAClient.instance
 
-        column_index = column.to_i
-
-        rows.each do |row|
-          input_string = row[column_index]
-          dawa_guid = dawa_client.address_guid(input_string)
-          $stdout << CSV.generate_line([*row,dawa_guid], col_sep: ';')
-          $stdout.flush
+        if column && column =~ /^\d+$/
+          column_index = column.to_i
+          rows.each do |row|
+            input_string = row[column_index]
+            dawa_guid = dawa_client.address_guid(input_string)
+            $stdout << CSV.generate_line([*row,dawa_guid], col_sep: ';')
+            $stdout.flush
+          end
+        else
+          $stderr << "Columns selection missing. Define selected Fx. 1,2,0\n"
+          rows.first.each_with_index do |name, index|
+            $stderr << "#{index}) #{name}\n"
+          end
         end
 
       end
