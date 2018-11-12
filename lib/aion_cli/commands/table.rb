@@ -5,6 +5,11 @@ module AionCLI
     class Table < Thor
       include AionCLI::ApplicationHelper
 
+      desc 'test ARGS...', '...'
+      def test(*args)
+        puts args.inspect
+      end
+
       desc 'uniform CSV_FILE', 'Convert to semi-colon separated UTF-8 csv file'
       def uniform(path)
         rows = read_spreadsheet(path)
@@ -145,10 +150,10 @@ module AionCLI
 
         # Build search index
         dict = Hash.new { |h,k| h[k] = [] }
-        rows_dict.each.with_index(2) do |values, line_number|
-          key = values[join_index_dict]
+        rows_dict.each.with_index(2) do |row, line_number|
+          key = row[join_index_dict]
           if key.blank?
-            alert_warning('empty value found in match column for ADDITIONAL_FILE')
+            error('Empty value found in match column for ADDITIONAL_FILE')
           else
             dict[key] << line_number
           end
@@ -156,17 +161,15 @@ module AionCLI
 
         # Warn about doublets
         dict.each do |key, line_numbers|
-          alert_warning("'#{key}' found in multiple lines (#{line_numbers.join(',')}") if line_numbers.size > 1
+          error("'#{key}' found in multiple lines (#{line_numbers.join(',')}") if line_numbers.size > 1
         end
 
         # Generate csv file
         ask_output do |csv|
           csv << headers_main
-
           rows_main.each do |row|
-            match_value = row[join_index_main]
-            next unless dict[match_value]
-            csv << row
+            key = row[join_index_main]
+            csv << row if dict.key?(key)
           end
         end
       end
@@ -182,10 +185,10 @@ module AionCLI
 
         # Build search index
         dict = Hash.new { |h,k| h[k] = [] }
-        rows_dict.each.with_index(2) do |values, line_number|
-          key = values[join_index_dict]
+        rows_dict.each.with_index(2) do |row, line_number|
+          key = row[join_index_dict]
           if key.blank?
-            alert_warning('empty value found in match column for ADDITIONAL_FILE')
+            error('Empty value found in match column for ADDITIONAL_FILE')
           else
             dict[key] << line_number
           end
@@ -193,17 +196,15 @@ module AionCLI
 
         # Warn about doublets
         dict.each do |key, line_numbers|
-          alert_warning("'#{key}' found in multiple lines (#{line_numbers.join(',')}") if line_numbers.size > 1
+          error("'#{key}' found in multiple lines (#{line_numbers.join(',')}") if line_numbers.size > 1
         end
 
         # Generate csv file
         ask_output do |csv|
           csv << headers_main
-
           rows_main.each do |row|
-            match_value = row[join_index_main]
-            next if dict[match_value]
-            csv << row
+            key = row[join_index_main]
+            csv << row unless dict.key?(key)
           end
         end
       end
@@ -274,7 +275,7 @@ module AionCLI
 
         # Warn about doublets
         dict.each do |key, line_numbers|
-          alert_warning("'#{key.inspect}' found in multiple rows (#{line_numbers.join(',')}")
+          error("'#{key.inspect}' found in multiple rows (#{line_numbers.join(',')}")
         end
 
         if dict.empty?

@@ -1,10 +1,12 @@
 require 'set'
 require 'faker'
 require 'csv'
+require 'aion_cli/helpers/application_helper'
 
 module AionCLI
   module CLI
     class TestData < Thor
+      include ApplicationHelper
       VALID_CODE_CHARS = %w(A B C D E F G H J K L M N P Q R S T U V X Y Z 2 3 4 5 6 7 8 9)
 
       desc 'generate_voters', 'Generate voters'
