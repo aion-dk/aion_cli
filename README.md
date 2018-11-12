@@ -1,4 +1,4 @@
-# AionCli
+# AionCLI
 
 AionCLI is a collection of scripts mainly for handling csv files.
 
