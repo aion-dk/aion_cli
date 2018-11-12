@@ -5,11 +5,6 @@ module AionCLI
     class Table < Thor
       include AionCLI::ApplicationHelper
 
-      desc 'test ARGS...', '...'
-      def test(*args)
-        puts args.inspect
-      end
-
       desc 'uniform CSV_FILE', 'Convert to semi-colon separated UTF-8 csv file'
       def uniform(path)
         rows = read_spreadsheet(path)
