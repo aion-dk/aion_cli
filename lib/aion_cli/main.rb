@@ -10,6 +10,12 @@ require 'active_support/all'
 module AionCLI
   class Main < Thor
 
+    desc 'update', 'Pull the latest changes'
+    def update
+      project_root = File.expand_path(File.join(__FILE__, '../../../'))
+      system("cd #{project_root} && git pull --ff && bundle install")
+    end
+
     desc 'dawa COMMANDS', 'DAWA helpers'
     subcommand 'dawa', AionCLI::CLI::Dawa
 
