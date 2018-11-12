@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faker', '~> 1.8.7'
   spec.add_dependency 'httpclient', '~> 2.7.0'
   spec.add_dependency 'write_xlsx', '~> 0.85.5'
+  spec.add_dependency 'activesupport', '~> 5.2.0'
 
   spec.add_development_dependency 'bundler', '~> 1.12'
   spec.add_development_dependency 'rake', '~> 10.0'

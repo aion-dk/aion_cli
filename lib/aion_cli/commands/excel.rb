@@ -1,6 +1,7 @@
 require 'roo'
 require 'csv'
 require 'write_xlsx'
+require 'aion_cli/helpers/application_helper'
 
 module AionCLI
   module CLI
@@ -16,43 +17,29 @@ module AionCLI
       def to_csv(path)
         absolute_path = File.absolute_path(path)
         xlsx = Roo::Spreadsheet.open(absolute_path)
-        target_csv_path = csv_filename(path)
 
         unless options[:s].nil?
           sheet_number = options[:s].to_i
           xlsx.default_sheet = xlsx.sheets[sheet_number]
         end
 
-        CSV.open(target_csv_path, 'wb', col_sep: ';') do |csv|
-          xlsx.each_row_streaming() do |row|
+        ask_output do |csv|
+          xlsx.each_row_streaming do |row|
             csv << row
           end
         end
 
       end
 
-      desc 'to_xlsx', 'Convert a CSV file to XLSX'
-      long_desc <<-LONG_DESC
-        Convert CSV file to XLSX
-      LONG_DESC
-
-      option :col_sep, banner: 'CSV column separator', default: ';'
-      def to_xlsx(csv_path, xlsx_path)
-        absolute_csv_path = File.absolute_path(csv_path)
-        absolute_xlsx_path = File.absolute_path(xlsx_path)
-
-        raise "Error: #{csv_path} does not exist" unless File.exists?(absolute_csv_path)
-        raise "Error: #{xlsx_path} already exists" if File.exists?(absolute_xlsx_path)
-
-        workbook = WriteXLSX.new(absolute_xlsx_path)
+      desc 'to_xlsx', 'Convert a spreadsheet file to XLSX'
+      def to_xlsx(csv_path)
+        workbook = WriteXLSX.new(ask_output_path('.xlsx'))
         worksheet = workbook.add_worksheet
 
         bold = workbook.add_format
         bold.set_bold
 
-        # Write a formatted and unformatted string, row and column notation.
-
-        headers, *data = CSV.read(absolute_csv_path, col_sep: options[:col_sep])
+        headers, *data = read_spreadsheet(csv_path)
 
         headers.each_with_index do |header, index|
           worksheet.write(0, index, header, bold)

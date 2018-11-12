@@ -7,13 +7,10 @@ module AionCLI
     class TestData < Thor
       VALID_CODE_CHARS = %w(A B C D E F G H J K L M N P Q R S T U V X Y Z 2 3 4 5 6 7 8 9)
 
-      desc 'valid_voters ROWS', 'Print secure random unique election codes'
-      long_desc <<-LONG_DESC
-        ...
-      LONG_DESC
+      desc 'generate_voters', 'Generate voters'
+      def generate_voters
+        rows = ask_natural_number('How many voters?')
 
-      def valid_voters(rows_s)
-        rows = rows_s.to_i
         raise ArgumentError, 'Argument must be a positive number between 1 and 1000000' unless 1 <= rows && rows <= 1000000
 
         factor1_generator = UniqueStringGenerator.new { (10000000 + SecureRandom.random_number(99999999 - 10000000)).to_s }
@@ -25,6 +22,8 @@ module AionCLI
             Encoding::ISO_8859_1,
             Encoding::UTF_8
         ]
+
+        encoding = encodings.sample
 
         districts = (1..5).map { |n| "District #{n}"}
 
@@ -44,7 +43,7 @@ module AionCLI
             'over 100 år'
         ]
 
-        CSV($stdout, col_sep: col_sep, encoding: encodings.sample) do |csv|
+        CSV.open(ask_output_path, 'w+', col_sep: col_sep, encoding: encodings.sample) do |csv|
           csv << %w(factor1 factor2 district weight age_group)
 
           rows.times do
@@ -57,6 +56,10 @@ module AionCLI
             ]
           end
         end
+
+        say("rows     : #{rows}")
+        say("col_sep  : #{col_sep}")
+        say("encoding : #{encoding}")
 
       end
     end

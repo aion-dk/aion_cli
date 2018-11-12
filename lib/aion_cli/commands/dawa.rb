@@ -1,10 +1,10 @@
-require 'aion_cli/helpers/csv_helper'
+require 'aion_cli/helpers/application_helper'
 require 'aion_cli/helpers/dawa_client'
 
 module AionCLI
   module CLI
     class Dawa < Thor
-      include AionCLI::CsvHelper
+      include AionCLI::ApplicationHelper
 
       desc 'validate_address CSV_FILE [COLUMN]', 'Convert to semi-colon separated UTF-8 csv file'
 
