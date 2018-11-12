@@ -16,14 +16,16 @@ Install ruby version 2.5.1
 Clone the repo to some folder.
 Put an executable somewhere in your path with the following: 
 
-    #!/usr/bin/env bash
+```bash
+#!/usr/bin/env bash
 
-    # Switch to ruby 2.5.1
-    eval "$(rbenv init -)"
-    rbenv shell 2.3.4
+# Switch to ruby 2.5.1
+eval "$(rbenv init -)"
+rbenv shell 2.3.4
 
-    # Trigger script
-    BUNDLE_GEMFILE=/path/to/aion_cli/Gemfile bundle exec /path/to/aion_cli/bin/aion $@
+# Trigger script
+BUNDLE_GEMFILE=/path/to/aion_cli/Gemfile bundle exec /path/to/aion_cli/bin/aion $@
+```
 
 Correct the path to fit your setup.
 
