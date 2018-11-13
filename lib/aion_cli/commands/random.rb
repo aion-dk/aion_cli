@@ -1,6 +1,7 @@
 require 'securerandom'
 require 'set'
 require 'aion_cli/helpers/application_helper'
+require 'aion_cli/helpers/unique_string_generator'
 
 module AionCLI
   module CLI
@@ -42,26 +43,6 @@ module AionCLI
           rows.each do |row|
             csv << row + [generator.get]
           end
-        end
-      end
-
-    end
-
-    protected
-
-    class UniqueStringGenerator
-
-      def initialize(used_values = [], &block)
-        @used_values = Set.new(used_values)
-        @block = block
-      end
-
-      def get
-        loop do
-          code = @block.call
-          next if @used_values.include?(code)
-          @used_values.add(code)
-          return code
         end
       end
 
