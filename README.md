@@ -16,29 +16,27 @@ After this, install rbenv using the following command:
 Follow the instructions on how to setup rbenv:
 https://github.com/rbenv/rbenv#homebrew-on-macos
 
-Clone the repo to some folder on your machine.
+Install a ruby version to use:
 
-In this example we are using ruby 2.5.3.
+    $ rbenv install 2.5.3
 
-Put an executable called `aion` somewhere in your path with the following contents:
+Clone the repository to a some folder, and navigate to it:
 
-```bash
-#!/usr/bin/env bash
+    $ git clone https://github.com/aion-dk/aion_cli.git 
+    $ cd aion_cli
 
-# Switch to ruby 2.5.3
-eval "$(rbenv init -)"
-rbenv shell 2.5.3
+Specify an installed ruby version to use:
 
-# Trigger script
-BUNDLE_GEMFILE=/path/to/aion_cli/Gemfile bundle exec /path/to/aion_cli/bin/aion $@
-```
-
-Correct the path to fit your setup.
-Make sure the file is executable:
+    $ rbenv local 2.5.3
     
-    $ chmod u+x /path/to/aion
+Install bundler and pull gems:
 
-Restart your terminal and you should be ready to go :-)
+    $ gem install bundler
+    $ bundle install
+
+
+
+You should be ready to go :-)
 
 ## Usage
 

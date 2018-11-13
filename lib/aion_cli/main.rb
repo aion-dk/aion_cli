@@ -19,7 +19,6 @@ module AionCLI
     desc 'install [PATH]', 'Install an executable at /usr/local/bin/aion'
     def install
       project_root = File.expand_path(File.join(__FILE__, '../../../'))
-      ruby_version = ENV['RBENV_VERSION']
 
       version_file = %x[rbenv version-file #{project_root}].chomp
       ruby_version = %x[rbenv version-file-read #{version_file}].chomp if version_file.present?
