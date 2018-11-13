@@ -16,6 +16,38 @@ module AionCLI
       system("cd #{project_root} && git pull --ff && bundle install")
     end
 
+    desc 'install [PATH]', 'Install an executable at /usr/local/bin/aion'
+    def install
+      project_root = File.expand_path(File.join(__FILE__, '../../../'))
+      ruby_version = ENV['RBENV_VERSION']
+
+      version_file = %x[rbenv version-file #{project_root}].chomp
+      ruby_version = %x[rbenv version-file-read #{version_file}].chomp if version_file.present?
+      ruby_version ||= %x[rbenv version-name].chomp
+
+      script_contents = <<-EOS.gsub(/^\s{8}/,'')
+        #!/usr/bin/env bash
+
+        # Switch to ruby #{ruby_version}
+        eval "$(rbenv init -)"
+        rbenv shell #{ruby_version}
+
+        # Trigger script
+        BUNDLE_GEMFILE=#{project_root}/Gemfile bundle exec #{project_root}/bin/aion "$@"
+      EOS
+
+      path = '/usr/local/bin/aion'
+
+      if File.exists?(path)
+        say("#{path} already exists")
+        return if no?('Do you want to overwrite?')
+      end
+
+      File.write(path, script_contents)
+      File.chmod(0755, path)
+      say("aion script installed into path #{path}")
+    end
+
     desc 'dawa COMMANDS', 'DAWA helpers'
     subcommand 'dawa', AionCLI::CLI::Dawa
 
