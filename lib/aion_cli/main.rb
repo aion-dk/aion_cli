@@ -16,7 +16,7 @@ module AionCLI
       system("cd #{project_root} && git pull --ff && bundle install")
     end
 
-    desc 'install [PATH]', 'Install an executable at /usr/local/bin/aion'
+    desc 'install', 'Install an executable at /usr/local/bin/aion'
     def install
       project_root = File.expand_path(File.join(__FILE__, '../../../'))
 
@@ -45,6 +45,11 @@ module AionCLI
       File.write(path, script_contents)
       File.chmod(0755, path)
       say("aion script installed into path #{path}")
+    end
+
+    desc 'version', 'Print aion version and exit'
+    def version
+      say(AionCLI::VERSION)
     end
 
     desc 'dawa COMMANDS', 'DAWA helpers'
