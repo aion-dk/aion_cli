@@ -29,12 +29,11 @@ Specify an installed ruby version to use:
 
     $ rbenv local 2.5.3
     
-Install bundler and pull gems:
+Install bundler, pull gems and install the aion script:
 
     $ gem install bundler
     $ bundle install
-
-
+    $ bundle exec aion install
 
 You should be ready to go :-)
 
