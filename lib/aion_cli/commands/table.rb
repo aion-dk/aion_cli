@@ -25,7 +25,7 @@ module AionCLI
 
         ask_output do |csv|
           rows.each do |row|
-            csv << row.values_at(indexes)
+            csv << row.values_at(*indexes)
           end
         end
       end
@@ -39,7 +39,7 @@ module AionCLI
 
         result = Hash.new(0)
         rows.each do |row|
-          key = row.values_at(group_by_indexes)
+          key = row.values_at(*group_by_indexes)
 
           sum_value = row[sum_index]
           raise Thor::Error, 'Non num value in sum' unless sum_value =~ /^\d+$/
@@ -48,7 +48,7 @@ module AionCLI
         end
 
         ask_output do |csv|
-          new_headers = headers.values_at(group_by_indexes)
+          new_headers = headers.values_at(*group_by_indexes)
           new_headers << 'sum of votes'
 
           csv << new_headers
