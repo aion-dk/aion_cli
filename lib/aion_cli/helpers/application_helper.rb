@@ -17,7 +17,7 @@ module AionCLI
 
       rows = []
       table.each do |row|
-        rows << row
+        rows << row.map(&:to_s)
       end
 
       rows
