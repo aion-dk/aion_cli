@@ -91,13 +91,14 @@ module AionCLI
 
         # Build search index
         join_b_hash = {}
-        allow_empty = false
+        allow_empty = nil
         rows_b.each do |values|
           key = values[join_index_b]
 
-          if not allow_empty and key.blank?
-            allow_empty = yes?('Empty value in join column for ADDITIONAL_FILE. Would you like to continue anyway?')
+          if key.blank?
+            allow_empty ||= yes?('Empty value in join column for ADDITIONAL_FILE. Would you like to continue anyway?')
             raise Thor::Error, 'Empty value in join column for ADDITIONAL_FILE' unless allow_empty
+            next
           end
 
           raise Thor::Error, "Duplicate keys in join column for ADDITIONAL_FILE (key: #{key})" if join_b_hash.has_key?(key)
