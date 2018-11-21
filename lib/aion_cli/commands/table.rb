@@ -211,6 +211,22 @@ module AionCLI
         end
       end
 
+      desc 'reject_empty MAIN_FILE', 'Select rows from MAIN_FILE where a value is not empty'
+      def reject_empty(path_a)
+
+        headers_main, *rows_main = read_spreadsheet(path_a)
+
+        join_index_main = ask_header_index(headers_main, 'Pick a match column for MAIN_FILE')
+
+        # Generate csv file
+        ask_output do |csv|
+          csv << headers_main
+          rows_main.each do |row|
+            key = row[join_index_main]
+            csv << row unless key.blank?
+          end
+        end
+      end
 
       desc 'split CSV_FILE', 'Splits a csv file into multiple files'
       def split(path)

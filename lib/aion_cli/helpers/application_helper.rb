@@ -47,7 +47,7 @@ module AionCLI
         index_str = ask("Column index:")
 
         unless index_str.match(/^\s*\d+\s*$/)
-          say("'#{index_str}' is not a valid column index (reg)")
+          say("'#{index_str}' is not a valid column index")
           next
         end
 
@@ -72,13 +72,12 @@ module AionCLI
 
         indexes_str = ask("Column selection (fx. 3,1,2):")
 
-        unless indexes_str.match(/^\s*(\d+\s*,\s*)?\d+\s*$/)
+        unless indexes_str.match(/^\s*(\d+\s*,\s*)*\d+\s*$/)
           say("'#{indexes_str}' is not a valid column selection")
           next
         end
 
-        indexes = indexes_str.scan(/^\s*\d+\s*$/).to_a.map(&:to_i)
-
+        indexes = indexes_str.scan(/\d+/).to_a.map(&:to_i)
 
         if indexes.any? { |index| index < 0 || index >= headers.size }
           say("'#{indexes_str}' is not a valid column selection")
@@ -114,7 +113,7 @@ module AionCLI
 
     def ask_output_path(extname = '.csv', default_name = 'out')
       loop do
-        output_path = ask("Pick a name for the output file (default: #{default_name}#{extname})")
+        output_path = ask("Pick a name for the output file (default: #{default_name}#{extname}):")
         output_path = default_name if output_path.strip == ''
         output_path += extname if File.extname(output_path) != extname
 
