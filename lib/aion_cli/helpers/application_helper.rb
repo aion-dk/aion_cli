@@ -147,8 +147,11 @@ module AionCLI
         absolute_output_path = File.expand_path(output_path)
 
         if File.exists?(absolute_output_path)
-          say("File already exists: #{absolute_output_path}")
-          next
+          if yes?('The file already exists. Would you like to overwrite?', :yellow)
+            File.unlink(absolute_output_path)
+          else
+            next
+          end
         end
 
         return absolute_output_path
