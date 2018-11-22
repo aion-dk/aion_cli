@@ -88,6 +88,33 @@ module AionCLI
       end
     end
 
+    def ask_header_indexes_for_sort(headers, message)
+      loop do
+        say(message)
+        headers.each.with_index do |name, i|
+          say("#{i}) #{name}\n")
+        end
+
+        indexes_str = ask("Sort order (fx. 0,-2,3):")
+
+        unless indexes_str.match(/^\s*(-?\d+\s*,\s*)*-?\d+\s*$/)
+          say("'#{indexes_str}' is not a valid sort order", :red)
+          next
+        end
+
+        matches = indexes_str.scan(/(-)?(\d+)/).to_a
+
+        sort_order = matches.map { |m| [m[0] == '-', m[1].to_i] }
+
+        if sort_order.any? { |_, index| index >= headers.size }
+          say("'#{indexes_str}' is not a valid sort order", :red)
+          next
+        end
+
+        return sort_order
+      end
+    end
+
     def ask_natural_number(message)
       loop do
         say(message)

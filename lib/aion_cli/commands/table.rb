@@ -64,12 +64,26 @@ module AionCLI
       def sort(path)
         headers, *rows = read_spreadsheet(path)
 
-        sort_by_indexes = ask_header_indexes(headers, 'Pick the columns to sort by')
+        sort_by_indexes = ask_header_indexes_for_sort(headers, 'Pick the sort order')
 
-        new_rows = rows.sort_by { |row| sort_by_indexes.map { |i|
-          value = row[i]
-          value =~ /^\d+$/ ? value.to_i : value
-        }}
+        new_rows = rows.sort { |a,b|
+          sort_by_indexes.inject(0) { |m,(reverse,index)|
+
+            next m if m != 0
+
+            a_value = a[index]
+            a_value = a_value.to_i if a_value =~ /^\s*-?\d+\s*$/
+
+            b_value = b[index]
+            b_value = b_value.to_i if b_value =~ /^\s*-?\d+\s*$/
+
+            if reverse
+              b_value <=> a_value
+            else
+              a_value <=> b_value
+            end
+          }
+        }
 
         ask_output do |csv|
           csv << headers
