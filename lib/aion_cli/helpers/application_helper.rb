@@ -11,6 +11,18 @@ module AionCLI
       case File.extname(path)
       when '.csv'
         table = read_csv(path)
+      when '.xlsx'
+        size = File.size(absolute_path)
+        size_mb = (size / 1024.0 / 1024.0).round
+        if size_mb > 5
+          say("The XSLT file #{absolute_path} is ~ #{size_mb}MB.")
+          say('To improve the speed, consider converting the file to a csv.')
+          unless yes?('Would you like to continue?', :yellow)
+            say('Done', :green)
+            exit 0
+          end
+        end
+        table = Roo::Spreadsheet.open(absolute_path)
       else
         table = Roo::Spreadsheet.open(absolute_path)
       end
