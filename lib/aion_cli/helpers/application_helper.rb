@@ -47,14 +47,14 @@ module AionCLI
         index_str = ask("Column index:")
 
         unless index_str.match(/^\s*\d+\s*$/)
-          say("'#{index_str}' is not a valid column index")
+          say("'#{index_str}' is not a valid column index", :red)
           next
         end
 
         index = index_str.to_i
 
         if index < 0 || index >= headers.size
-          say("'#{index_str}' is not a valid column index")
+          say("'#{index_str}' is not a valid column index", :red)
           next
         end
 
@@ -73,14 +73,14 @@ module AionCLI
         indexes_str = ask("Column selection (fx. 3,1,2):")
 
         unless indexes_str.match(/^\s*(\d+\s*,\s*)*\d+\s*$/)
-          say("'#{indexes_str}' is not a valid column selection")
+          say("'#{indexes_str}' is not a valid column selection", :red)
           next
         end
 
         indexes = indexes_str.scan(/\d+/).to_a.map(&:to_i)
 
         if indexes.any? { |index| index < 0 || index >= headers.size }
-          say("'#{indexes_str}' is not a valid column selection")
+          say("'#{indexes_str}' is not a valid column selection", :red)
           next
         end
 
@@ -122,7 +122,7 @@ module AionCLI
         number_str = ask("Number:")
 
         unless number_str.match(/^\s*\d+\s*$/)
-          say("'#{number_str}' must be a number greater than or equal to zero")
+          say("'#{number_str}' must be a number greater than or equal to zero", :red)
           next
         end
 
@@ -135,7 +135,9 @@ module AionCLI
     end
 
     def ask_output(&block)
-      CSV.open(ask_output_path, 'w+', col_sep: ';', &block)
+      output_path = ask_output_path
+      CSV.open(output_path, 'w+', col_sep: ';', &block)
+      say("Done! Output stored in #{output_path}", :green)
     end
 
     def ask_output_path(extname = '.csv', default_name = 'out')
@@ -166,7 +168,7 @@ module AionCLI
         absolute_output_dir = File.expand_path(output_dir)
 
         if File.exists?(absolute_output_dir)
-          say("Already exists: #{absolute_output_dir}")
+          say("Already exists: #{absolute_output_dir}", :red)
           next
         end
 
