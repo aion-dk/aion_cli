@@ -72,16 +72,17 @@ module AionCLI
             next m if m != 0
 
             a_value = a[index]
-            a_value = a_value.to_i if a_value =~ /^\s*-?\d+\s*$/
-
             b_value = b[index]
-            b_value = b_value.to_i if b_value =~ /^\s*-?\d+\s*$/
 
-            if reverse
-              b_value <=> a_value
-            else
-              a_value <=> b_value
+            # Convert to numbers
+            if a_value =~ /^\s*-?\d+\s*$/ and b_value =~ /^\s*-?\d+\s*$/
+              a_value = a_value.to_i
+              b_value = b_value.to_i
             end
+
+            next b_value <=> a_value if reverse
+
+            a_value <=> b_value
           }
         }
 
@@ -95,7 +96,7 @@ module AionCLI
       end
 
 
-      desc 'join MAIN_FILE ADDITIONAL_FILE', 'Adds the columns of ADDITIONAL_FILE by joining where a vasluer match is found'
+      desc 'join MAIN_FILE ADDITIONAL_FILE', 'Adds the columns of ADDITIONAL_FILE by joining where a value match is found'
       def join(path_a, path_b)
         headers_a, *rows_a = read_spreadsheet(path_a)
         headers_b, *rows_b = read_spreadsheet(path_b)
