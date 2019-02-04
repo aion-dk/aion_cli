@@ -9,6 +9,7 @@ module AionCLI
       include AionCLI::ApplicationHelper
 
       VALID_CODE_CHARS = %w(A B C D E F G H J K L M N P Q R T U V X Y Z 2 3 4 6 7 8 9)
+      VALID_ID_CHARS = %w(1 2 3 4 5 6 7 8 9)
 
       desc 'add_election_code CSV_FILE', 'Add a column with a secure random unique election code'
       def add_election_code(path)
@@ -27,7 +28,25 @@ module AionCLI
         end
       end
 
-      desc 'unique_number MINIMUM MAXIMUM', 'Add a column with a secure random unique number'
+      desc 'add_unique_voter_id CSV_FILE', 'Add a column with a secure random unique voter id'
+      def add_unique_voter_id(path)
+        headers, *rows = read_spreadsheet(path)
+
+
+        length = ask_natural_number('Pick the length of the unique voter id (RECOMMENDED: 8)')
+        generator = UniqueStringGenerator.new do
+          length.times.map { VALID_ID_CHARS[SecureRandom.random_number(VALID_ID_CHARS.size)] }.join
+        end
+
+        ask_output do |csv|
+          csv << ['voter_id'] + headers
+          rows.each do |row|
+            csv << [generator.get] + row
+          end
+        end
+      end
+
+      desc 'add_unique_number CSV_FILE', 'Add a column with a secure random unique number'
       def add_unique_number(path)
         headers, *rows = read_spreadsheet(path)
 
