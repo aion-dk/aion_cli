@@ -5,6 +5,7 @@ require 'aion_cli/commands/random'
 require 'aion_cli/commands/table'
 require 'aion_cli/commands/test_data'
 require 'aion_cli/commands/text'
+require 'aion_cli/commands/validate'
 require 'active_support/all'
 
 module AionCLI
@@ -69,6 +70,9 @@ module AionCLI
 
     desc 'text COMMANDS', 'Text helpers'
     subcommand 'text', AionCLI::CLI::Text
+
+    desc 'validate COMMANDS', 'Validation helpers'
+    subcommand 'validate', AionCLI::CLI::Validate
 
   end
 end

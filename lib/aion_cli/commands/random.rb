@@ -33,7 +33,7 @@ module AionCLI
         headers, *rows = read_spreadsheet(path)
 
 
-        length = ask_natural_number('Pick the length of the unique voter id (RECOMMENDED: 8)')
+        length = ask_natural_number('Pick the length of the unique voter id (RECOMMENDED: 8 or more)')
         generator = UniqueStringGenerator.new do
           length.times.map { VALID_ID_CHARS[SecureRandom.random_number(VALID_ID_CHARS.size)] }.join
         end

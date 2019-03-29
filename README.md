@@ -20,7 +20,7 @@ Install a ruby version to use:
 
     $ rbenv install 2.5.3
 
-Clone the repository to a some folder, and navigate to it:
+Clone the repository to some folder, and navigate to it:
 
     $ git clone https://github.com/aion-dk/aion_cli.git 
     $ cd aion_cli
