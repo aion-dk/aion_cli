@@ -38,6 +38,8 @@ module AionCLI
     def read_csv(path, options = {})
       absolute_path = File.expand_path(path)
       content = read_file(absolute_path)
+      # Remove BOM from contents
+      content.sub!("\xEF\xBB\xBF", '')
       options[:col_sep] ||= detect_col_sep(content)
       CSV.parse(content, options)
     end
