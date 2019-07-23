@@ -3,6 +3,7 @@ require 'csv'
 require 'aion_cli/helpers/application_helper'
 require 'aion_cli/helpers/dawa_client'
 
+
 module AionCLI
   module CLI
     class Validate < Thor
@@ -13,7 +14,7 @@ module AionCLI
         headers, *rows = read_spreadsheet(path)
 
         # Select validation commands
-        command_headers = ['CPR validation','EMAIL validation','ADDRESS validation','EMPTY values check']
+        command_headers = ['CPR validation','EMAIL validation','ADDRESS validation','DK PHONE NUMBER validation','EMPTY values check']
         validation_types = ask_header_indexes(command_headers, 'Specify the validations you want to perform')
         say
 
@@ -21,7 +22,7 @@ module AionCLI
         counts_validation = Hash.new(0)
         counts_empty_check = Hash.new(0)
 
-        index_cpr, index_addr, index_email, indexes_empty_check = nil
+        index_cpr, index_addr, index_email, indexes_empty_check, index_phone = nil
         sample = false
         n_headers = headers
 
@@ -36,11 +37,13 @@ module AionCLI
             n_headers += ['email_valid']
           when 2
             index_addr = ask_header_index(headers, 'Specify the ADDRESS column')
-            say
             say 'Address validation is very time consuming, consider using only a sample!'
-            sample = yes?('Do you want to use a sample (25) of the addresses when validating?', :yellow)
+            sample = yes?('Do you want to use a sample (25) of the addresses when validating?', :yellow); say
             n_headers += ['addr_found']
           when 3
+            index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column')
+            n_headers += ['phone_valid']
+          when 4
             indexes_empty_check = ask_header_indexes(headers, 'Specify which columns you want to check for empty values')
           end
 
@@ -118,12 +121,29 @@ module AionCLI
               row << result
             end
           end
+
+          #PHONE NUMBER validation
+          if validation_types.include?(3)
+            rows.each do |row|
+              phone = row[index_phone]
+              if phone.blank?
+                counts_validation[:phone_empty] += 1
+                result = "false empty"
+              else
+                valid = validate_phone_number(phone)
+                valid ? result = "true" : result = "false format"
+                counts_validation[:phone_invalid] += 1 unless valid
+              end
+              row << result
+            end
+          end
+
           rows.each do |row|
             csv << row
           end
 
           #EMPTY check
-          if validation_types.include?(3)
+          if validation_types.include?(4)
             indexes_empty_check.each do |index|
               rows.each do |row|
                 if row[index].blank?
@@ -145,7 +165,7 @@ module AionCLI
           say 'No problems detected in validation of selected columns.', :green
         end
 
-        if validation_types.include?(3) #Empty check
+        if validation_types.include?(4) #Empty check
           say
           say 'Empty check result:'
 
@@ -175,6 +195,11 @@ module AionCLI
       def validate_email(email)
         email_regex = URI::MailTo::EMAIL_REGEXP
         !!email.match(email_regex)
+      end
+
+      def validate_phone_number(phone_number)
+        dk_phone_regex = /(?:45\s?)?(?:\d{2}\s?){3}\d{2}/
+        !!phone_number.match(dk_phone_regex)
       end
     end
   end

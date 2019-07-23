@@ -6,6 +6,7 @@ require 'aion_cli/commands/table'
 require 'aion_cli/commands/test_data'
 require 'aion_cli/commands/text'
 require 'aion_cli/commands/validate'
+require 'aion_cli/commands/prepare'
 require 'active_support/all'
 
 module AionCLI
@@ -73,6 +74,9 @@ module AionCLI
 
     desc 'validate COMMANDS', 'Validation helpers'
     subcommand 'validate', AionCLI::CLI::Validate
+
+    desc 'prepare COMMANDS', 'Preparation helpers'
+    subcommand 'prepare', AionCLI::CLI::Prepare
 
   end
 end

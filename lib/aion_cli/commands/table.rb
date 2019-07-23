@@ -314,10 +314,7 @@ module AionCLI
         if dict.empty?
           say('No doublets found for: %s' % headers.inspect)
         end
-
-
       end
-
     end
   end
 end
