@@ -38,58 +38,7 @@ module AionCLI
 
       end
 
-      desc 'client', 'APIClient test'
-      def client
-        client = Client.new(
-                  "Meetings",
-                  "Meetings 2019",
-                  1
-              )
-
-        client.auto_auth_lookup("0101980014")
-        client.auto_auth_lookup("0101980014")
-      #  client.authorize
-      #  client.lookup("0101980014")
-      end
-
       private
-
-      class Client
-
-        BASE_API_URL = 'http://localhost:3000/api/v'
-        AUTH_URL = '/authenticate'
-        LOOKUP_URL = '/cpr/lookup'
-
-        def initialize(user, pass, version)
-          @user, @pass, @version = user, pass, version
-          @token = ''
-          @http = HTTPClient.new(
-              agent_name: "APIClient",
-              default_header: { 'Content-Type' => 'application/json' }
-          )
-        end
-
-        def authorize
-          auth_body = { username: @user, password: @pass }.to_json
-          request = @http.post(BASE_API_URL+@version.to_s+AUTH_URL,auth_body)
-          @token = JSON.parse(request.content)['auth_token']
-        end
-
-        def lookup(cpr)
-          lookup_body = { cpr: cpr }.to_json
-          lookup_header = { 'Authorization' => @token }
-          record = @http.post(BASE_API_URL+@version.to_s+LOOKUP_URL, lookup_body, lookup_header)
-        end
-
-        def auto_auth_lookup(cpr)
-          resp = lookup(cpr)
-          if resp.code != 200
-            authorize
-            resp = lookup(cpr)
-          end
-          puts resp.content
-        end
-      end
 
       def data_validation(path)
         headers, *rows = read_spreadsheet(path)
