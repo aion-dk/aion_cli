@@ -26,7 +26,7 @@ module AionCLI
         say
         say('Step 2: Data preparation', :bold)
 
-        data_preparation(path)
+        result_path = data_preparation(path)
 
         say
         ask("Hit enter to continue to 'Step 3: File separation'", :green)
@@ -34,7 +34,10 @@ module AionCLI
         say
         say('Step 3: File separation', :bold)
 
-        data_separation(path)
+        data_separation(result_path)
+
+        say
+        say('Done! ', :bold)
 
       end
 
@@ -191,7 +194,7 @@ module AionCLI
         command_clean_headers = ['CPR (-> 0101862030)','Phone Number  (-> 11223344)','Date of Birth  (-> DDMMYY)','[ Skip ]']
         command_prepare_headers = ['Election Codes','Voter IDs','Date of Birth  (CPR needed)','[ Skip ]']
 
-        command_date_headers = ['DD/MM/YYYY','MM/DD/YYYY','DD-MM-YYYY','MM-DD-YYYY']
+        command_date_headers = ['DD/MM/YYYY','MM/DD/YYYY','DD-MM-YYYY','MM-DD-YYYY','DDMMYY']
 
         clean_types = ask_header_indexes(command_clean_headers, 'Specify what existing fields should be cleaned')
         say
@@ -227,6 +230,7 @@ module AionCLI
             when 1; date_type = '%m/%d/%Y'
             when 2; date_type = '%d-%m-%Y'
             when 3; date_type = '%m-%d-%Y'
+            when 4; date_type = '%d%m%Y'
             end
           end
         end
@@ -245,7 +249,10 @@ module AionCLI
 
         say
         say 'Generating file with results', :bold
-        ask_output do |csv|
+
+        result_file = ask_output_path
+
+        output result_file do |csv|
 
           dict_failed = []
 
@@ -344,12 +351,15 @@ module AionCLI
           #Gather fails in a csv
           say
           say 'Generating file with faulty data rows', :bold
-          ask_output do |csv_failed|
+          faulty_file = ask_output_path
+          output faulty_file do |csv_failed|
             csv_failed << headers
             dict_failed.uniq.each do |line_number|
               csv_failed << rows[line_number]
             end
           end
+
+          return result_file
         end
       end
 
@@ -360,13 +370,16 @@ module AionCLI
         command_headers = ['Votes','Cards','Candidacy','[ Skip ]']
         slice_types = ask_header_indexes(command_headers, 'Specify what systems you need files for')
         say
+        customer = ask("Input customer initials for file naming (i.e. AV, JØP, HK, ..):")
 
+        return if slice_types.include?(3)
         slice_types.each do |t|
-          say  'Slicing file for '+t+'...'
-          slice(path)
+          file_suffix = command_headers[t]
+          say
+          say  "Slicing file for #{file_suffix}...", [:cyan, :bold]
+
+          slice_file(path, customer, file_suffix)
         end
-
-
       end
 
       def validate_cpr(cpr)
@@ -400,6 +413,28 @@ module AionCLI
 
       def clean_dob(date,format)
         begin Date.strptime(date, format).strftime('%d%m%y') rescue nil end
+      end
+
+      def slice_file(path, prefix, suffix)
+        rows = read_spreadsheet(path)
+        indexes = ask_header_indexes(rows.first, "Pick the columns to keep")
+        file_name = "#{prefix}_#{suffix}.csv"
+        output_path = File.expand_path(file_name)
+
+        if File.exists?(output_path)
+          if yes?("The file #{file_name} already exists. Would you like to overwrite?", :yellow)
+            File.unlink(output_path)
+          else
+            return
+          end
+        end
+
+        output output_path  do |csv|
+          rows.each do |row|
+            csv << row.values_at(*indexes)
+          end
+          say "Generated file for #{suffix}.", :green
+        end
       end
     end
   end
