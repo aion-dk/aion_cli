@@ -393,7 +393,7 @@ module AionCLI
       end
 
       def validate_email(email)
-        email_regex = /\A[a-zA-Z0-9ÆØÅæøå.!\#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9ÆØÅæøå](?:[a-zA-Z0-9ÆØÅæøå-]{0,61}[a-zA-Z0-9ÆØÅæøå])?(?:\.[a-zA-Z0-9ÆØÅæøå](?:[a-zA-Z0-9ÆØÅæøå-]{0,61}[a-zA-Z0-9ÆØÅæøå])?)*\z/
+        email_regex = URI::MailTo::EMAIL_REGEXP
         !!email.match(email_regex)
       end
 
