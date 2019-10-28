@@ -43,7 +43,7 @@ module AionCLI
 
       desc 'add_age CSV_FILE', 'Add age calculated from CPR. DATE defaults to "Today"'
       def add_age(path)
-        date = ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)')
+        date = Date.parse(ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)'))
         if date == ""
           date = Date.today
         end
