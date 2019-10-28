@@ -51,40 +51,40 @@ module AionCLI
           rows.each do |row|
             cpr = row[index_cpr]
             year = cpr[4..5].to_i
+            year_text = year < 10 ? "0#{year}" : year.to_s
             day = cpr[0..1].to_i
             month = cpr[2..3].to_i
             birthdate = nil
 
             case cpr[6].to_i
             when 0..3
-              birthdate = "19#{year}-#{month}-#{day}"
+              birthdate = "19#{year_text}-#{month}-#{day}"
             when 4
               case year
               when 0..36
-                birthdate = "20#{year}-#{month}-#{day}"
+                birthdate = "20#{year_text}-#{month}-#{day}"
               when 37..99
-                birthdate = "19#{year}-#{month}-#{day}"
+                birthdate = "19#{year_text}-#{month}-#{day}"
               end
             when 5..8
               case year
               when 0..57
-                birthdate = "20#{year}-#{month}-#{day}"
+                birthdate = "20#{year_text}-#{month}-#{day}"
               when 58..99
-                birthdate = "18#{year}-#{month}-#{day}"
+                birthdate = "18#{year_text}-#{month}-#{day}"
               end
             when 9
               case year
               when 0..36
-                birthdate = "20#{year}-#{month}-#{day}"
+                birthdate = "20#{year_text}-#{month}-#{day}"
               when 37..99
-                birthdate = "19#{year}-#{month}-#{day}"
+                birthdate = "19#{year_text}-#{month}-#{day}"
               end
             end
 
             difference = (date - Date.parse(birthdate)).to_i
             modulus = difference/365/4
             age = (difference-modulus)/365
-            puts age
             row << age
           end
 
