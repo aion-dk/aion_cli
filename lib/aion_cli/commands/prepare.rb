@@ -41,9 +41,12 @@ module AionCLI
 
       end
 
-      desc 'add_age CSV_FILE DATE-optional', 'Add age calculated from CPR. DATE defaults to "Today"'
-      def add_age(path, date = nil)
-        date = date.nil? ? Date.today : Date.parse(date)
+      desc 'add_age CSV_FILE', 'Add age calculated from CPR. DATE defaults to "Today"'
+      def add_age(path)
+        date = ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)')
+        if date == ""
+          date = Date.today
+        end
         headers, *rows = read_spreadsheet(path)
         index_cpr = ask_header_index(headers, 'Specify CPR column.')
 

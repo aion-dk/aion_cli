@@ -144,6 +144,21 @@ module AionCLI
       end
     end
 
+    def ask_date_string(message)
+      loop do
+        say(message)
+
+        date = ask("Date (YYYY-MM-DD):")
+
+        unless date.match(/^\d{4}\-\d{2}\-\d{2}$/)
+          say("'#{date}' is invalid. Date must have this format -> YYYY-MM-DD", :red)
+          next
+        end
+
+        return date
+      end
+    end
+
     def output(path, &block)
       CSV.open(path, 'w+', col_sep: ';', &block)
     end
