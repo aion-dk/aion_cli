@@ -41,6 +41,61 @@ module AionCLI
 
       end
 
+      desc 'add_age CSV_FILE DATE-optional', 'Add age calculated from CPR. DATE defaults to "Today"'
+      def add_age(path, date = nil)
+        date = date.nil? ? Date.today : Date.parse(date)
+        headers, *rows = read_spreadsheet(path)
+        index_cpr = ask_header_index(headers, 'Specify CPR column.')
+
+        ask_output do |csv|
+          rows.each do |row|
+            cpr = row[index_cpr]
+            year = cpr[4..5].to_i
+            day = cpr[0..1].to_i
+            month = cpr[2..3].to_i
+            birthdate = nil
+
+            case cpr[6].to_i
+            when 0..3
+              birthdate = "19#{year}-#{month}-#{day}"
+            when 4
+              case year
+              when 0..36
+                birthdate = "20#{year}-#{month}-#{day}"
+              when 37..99
+                birthdate = "19#{year}-#{month}-#{day}"
+              end
+            when 5..8
+              case year
+              when 0..57
+                birthdate = "20#{year}-#{month}-#{day}"
+              when 58..99
+                birthdate = "18#{year}-#{month}-#{day}"
+              end
+            when 9
+              case year
+              when 0..36
+                birthdate = "20#{year}-#{month}-#{day}"
+              when 37..99
+                birthdate = "19#{year}-#{month}-#{day}"
+              end
+            end
+
+            difference = (date - Date.parse(birthdate)).to_i
+            modulus = difference/365/4
+            age = (difference-modulus)/365
+            puts age
+            row << age
+          end
+
+          csv << headers + ['Age']
+
+          rows.each do |row|
+            csv << row
+          end
+        end
+      end
+
       private
 
       def data_validation(path)
