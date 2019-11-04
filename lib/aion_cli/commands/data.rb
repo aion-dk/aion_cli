@@ -1,5 +1,6 @@
 require 'roo'
 require 'csv'
+require 'aion_cli/helpers/preparation_helper'
 require 'aion_cli/helpers/application_helper'
 require 'aion_cli/helpers/dawa_client'
 require 'time'
@@ -10,10 +11,31 @@ require 'aion_cli/commands/table'
 
 module AionCLI
   module CLI
-    class Prepare < Thor
+    class Data < Thor
       include AionCLI::ApplicationHelper
+      include AionCLI::PreparationHelper
 
-      desc 'full CSV_FILE', 'Select which data you wish to prepare in a CSV file'
+      desc 'validate CSV_FILE', 'Select which data you wish to validate in a CSV file'
+      def validate(path)
+        data_validation(path)
+      end
+
+      desc 'prepare CSV_FILE', 'Select which data you wish to prepare and add to a CSV file'
+      def prepare(path)
+        data_preparation(path)
+      end
+
+      desc 'separate CSV_FILE', 'Slice CSV FILE into multiple files for each system each containing specified columns'
+      def separate(path)
+        data_separation(path)
+      end
+
+      desc 'full CSV_FILE', 'Perform all data task in one go. (validate --> prepare --> separate)'
+      long_desc <<-LONG_DESC
+        Select which data you wish to prepare in a CSV file.\n
+        Three steps are performed: \n
+        Data Validation --> Data Preparation --> Data Separation.
+        LONG_DESC
       def full(path)
 
         say
@@ -41,64 +63,6 @@ module AionCLI
 
       end
 
-      desc 'add_age CSV_FILE', 'Add age calculated from CPR. DATE defaults to "Today"'
-      def add_age(path)
-        date = Date.parse(ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)'))
-        if date == ""
-          date = Date.today
-        end
-        headers, *rows = read_spreadsheet(path)
-        index_cpr = ask_header_index(headers, 'Specify CPR column.')
-
-        ask_output do |csv|
-          rows.each do |row|
-            cpr = row[index_cpr]
-            year = cpr[4..5].to_i
-            year_text = year < 10 ? "0#{year}" : year.to_s
-            day = cpr[0..1].to_i
-            month = cpr[2..3].to_i
-            birthdate = nil
-
-            case cpr[6].to_i
-            when 0..3
-              birthdate = "19#{year_text}-#{month}-#{day}"
-            when 4
-              case year
-              when 0..36
-                birthdate = "20#{year_text}-#{month}-#{day}"
-              when 37..99
-                birthdate = "19#{year_text}-#{month}-#{day}"
-              end
-            when 5..8
-              case year
-              when 0..57
-                birthdate = "20#{year_text}-#{month}-#{day}"
-              when 58..99
-                birthdate = "18#{year_text}-#{month}-#{day}"
-              end
-            when 9
-              case year
-              when 0..36
-                birthdate = "20#{year_text}-#{month}-#{day}"
-              when 37..99
-                birthdate = "19#{year_text}-#{month}-#{day}"
-              end
-            end
-
-            difference = (date - Date.parse(birthdate)).to_i
-            modulus = difference/365/4
-            age = (difference-modulus)/365
-            row << age
-          end
-
-          csv << headers + ['Age']
-
-          rows.each do |row|
-            csv << row
-          end
-        end
-      end
-
       private
 
       def data_validation(path)
@@ -114,94 +78,126 @@ module AionCLI
         counts_empty_check = Hash.new(0)
 
         index_cpr, index_addr, index_email, indexes_empty_check, index_phone = nil
+        sample = true
+        n_headers = headers
 
         # Get column indexes of each selected validation type
         validation_types.each do |type|
           case type
           when 0
-            index_cpr = ask_header_index(headers, 'Specify the CPR column')
+            index_cpr = ask_header_index(headers, 'Specify the CPR column'); say
+            n_headers += ['cpr_valid']
           when 1
-            index_email = ask_header_index(headers, 'Specify the EMAIL column')
+            index_email = ask_header_index(headers, 'Specify the EMAIL column'); say
+            n_headers += ['email_valid']
           when 2
             index_addr = ask_header_index(headers, 'Specify the ADDRESS column')
             say 'Address validation is very time consuming, consider only using a sample!', :yellow
-            sample = yes?('Do you want to use a sample of the addresses when validating?', :yellow); say
+            sample = yes?('Do you want to use a sample (25) of the addresses when validating?', :yellow); say
+            n_headers += ['address_found']
           when 3
-            index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column')
+            index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column'); say
+            n_headers += ['phone_valid']
           end
         end
 
-        check_empty = yes?('Do you wants to check for empty values in other fields?')
+        check_empty = yes?('Do you wants to check for empty values in other fields?'); say
         indexes_empty_check = ask_header_indexes(headers, 'Specify which columns you want to check for empty values') if check_empty
+        say
 
         dawa_client = AionCLI::DAWAClient.instance
 
         # Iterate through selected validations and perform validation --> output to csv
-        # CPR validation
-        if validation_types.include?(0)
 
-          # Build doublet index
-          dict = Hash.new { |h,k| h[k] = [] }
-          rows.each.with_index(2) do |row, line_number|
-            key = row[index_cpr]
-            unless key.blank?
-              dict[key] << line_number
-            end
-          end
+        say 'Generating file with validation result', :bold
+        ask_output do |csv|
+          say 'Performing validation...', :cyan
+          csv << n_headers
 
-          rows.each do |row|
-            cpr = row[index_cpr]
-            if cpr.blank?
-              counts_validation[:cpr_empty] += 1
-            elsif dict[cpr].size > 1
-              counts_validation[:cpr_doublets] += 1
-            else
-              valid = validate_cpr(cpr)
-              counts_validation[:cpr_invalid] += 1 unless valid
-            end
-          end
-        end
+          # CPR validation
+          if validation_types.include?(0)
 
-        #EMAIL validation
-        if validation_types.include?(1)
-          rows.each do |row|
-            email = row[index_email]
-            if email.blank?
-              counts_validation[:email_empty] += 1
-            else
-              valid = validate_email(email)
-              counts_validation[:email_invalid] += 1 unless valid
-            end
-          end
-        end
-
-        #ADDRESS validation
-        if validation_types.include?(2)
-          addr_tested = 0
-          rows.each do |row|
-            addr = row[index_addr]
-            if addr.blank?
-              counts_validation[:addr_empty] += 1
-            else
-              unless addr_tested > 25 && sample
-                valid = validate_addr(addr, dawa_client)
-                counts_validation[:addr_not_found] += 1 unless valid
-                addr_tested += 1
+            # Build doublet index
+            dict = Hash.new { |h,k| h[k] = [] }
+            rows.each.with_index(2) do |row, line_number|
+              key = row[index_cpr]
+              unless key.blank?
+                dict[key] << line_number
               end
             end
-          end
-        end
 
-        #PHONE NUMBER validation
-        if validation_types.include?(3)
-          rows.each do |row|
-            phone = row[index_phone]
-            if phone.blank?
-              counts_validation[:phone_empty] += 1
-            else
-              valid = validate_phone_number(phone)
-              counts_validation[:phone_invalid] += 1 unless valid
+            rows.each do |row|
+              cpr = row[index_cpr]
+              if cpr.blank?
+                counts_validation[:cpr_empty] += 1
+                result = "false empty"
+              elsif dict[cpr].size > 1
+                counts_validation[:cpr_doublets] += 1
+                result = "false doublet"
+              else
+                valid = validate_cpr(cpr)
+                valid ? result = "true" : result = "false format"
+                counts_validation[:cpr_invalid] += 1 unless valid
+              end
+              row << result
             end
+          end
+
+          #EMAIL validation
+          if validation_types.include?(1)
+            rows.each do |row|
+              email = row[index_email]
+              if email.blank?
+                counts_validation[:email_empty] += 1
+                result = "false empty"
+              else
+                valid = validate_email(email)
+                valid ? result = "true" : result = "false format"
+                counts_validation[:email_invalid] += 1 unless valid
+              end
+              row << result
+            end
+          end
+
+          #ADDRESS validation
+          if validation_types.include?(2)
+            addr_tested = 0
+            rows.each do |row|
+              result = ""    # bedre måde?
+              addr = row[index_addr]
+              if addr.blank?
+                counts_validation[:addr_empty] += 1
+                result = "false empty"
+              else
+                unless addr_tested > 25 && sample
+                  valid = validate_addr(addr, dawa_client)
+                  valid ? result = "true" : result = "false format"
+                  counts_validation[:addr_not_found] += 1 unless valid
+                  addr_tested += 1
+                end
+              end
+              row << result
+            end
+          end
+
+          #PHONE NUMBER validation
+          if validation_types.include?(3)
+            rows.each do |row|
+              phone = row[index_phone]
+              if phone.blank?
+                counts_validation[:phone_empty] += 1
+                result = "false empty"
+              else
+                valid = validate_phone_number(phone)
+                valid ? result = "true" : result = "false format"
+                counts_validation[:phone_invalid] += 1 unless valid
+              end
+              row << result
+            end
+          end
+
+          rows.each do |row|
+            csv << row
           end
         end
 
@@ -242,6 +238,7 @@ module AionCLI
         say
       end
 
+
       #Chars for data prep (generating election codes and voter id's)
       VALID_CODE_CHARS = %w(A B C D E F G H J K L M N P Q R T U V X Y Z 2 3 4 6 7 8 9)
       VALID_ID_CHARS = %w(1 2 3 4 5 6 7 8 9)
@@ -267,13 +264,13 @@ module AionCLI
         clean_types.each do |type|
           case type
           when 0
-            index_cpr = ask_header_index(headers, 'Specify the CPR column')
+            index_cpr = ask_header_index(headers, 'Specify the CPR column'); say
             n_headers += [headers[index_cpr]+'_cleaned']
           when 1
-            index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column')
+            index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column'); say
             n_headers += [headers[index_phone]+'_cleaned']
           when 2
-            index_dob = ask_header_index(headers, 'Specify the DATE OF BIRTH column')
+            index_dob = ask_header_index(headers, 'Specify the DATE OF BIRTH column'); say
             n_headers += [headers[index_dob]+'_cleaned']
 
             say
@@ -281,6 +278,7 @@ module AionCLI
             rows[0..3].each do |row|
               say row[index_dob], :green
             end
+
             index_date_type = ask_header_index(command_date_headers, 'Specify the format of the dates in DATE column')
 
             case index_date_type
@@ -306,11 +304,12 @@ module AionCLI
         end
 
         say
-        say 'Generating file with results', :bold
+        say 'Generating file with preparation results', :bold
 
         result_file = ask_output_path
 
         output result_file do |csv|
+          say 'Performing preparation...', :cyan
 
           dict_failed = []
 
@@ -406,28 +405,28 @@ module AionCLI
             csv << row
           end
 
-          #Gather fails in a csv
-          say
-          say 'Generating file with faulty data rows', :bold
-          faulty_file = ask_output_path
-          output faulty_file do |csv_failed|
-            csv_failed << headers
-            dict_failed.uniq.each do |line_number|
-              csv_failed << rows[line_number]
+          if dict_failed.any?
+            #Gather fails in a csv
+            say
+            say 'Generating file with faulty data rows', :bold
+            faulty_file = ask_output_path
+            output faulty_file do |csv_failed|
+              csv_failed << headers
+              dict_failed.uniq.each do |line_number|
+                csv_failed << rows[line_number]
+              end
             end
           end
-
-          return result_file
         end
+        result_file
       end
 
       def data_separation(path)
-        headers, *rows = read_spreadsheet(path)
+        rows = read_spreadsheet(path)
 
         # Select validation commands
         command_headers = ['Votes','Cards','Candidacy','[ Skip ]']
-        slice_types = ask_header_indexes(command_headers, 'Specify what systems you need files for')
-        say
+        slice_types = ask_header_indexes(command_headers, 'Specify what systems you need files for'); say
         customer = ask("Input customer initials for file naming (i.e. AV, JØP, HK, ..):")
 
         return if slice_types.include?(3)
@@ -435,63 +434,8 @@ module AionCLI
           file_suffix = command_headers[t]
           say
           say  "Slicing file for #{file_suffix}...", [:cyan, :bold]
-
-          slice_file(path, customer, file_suffix)
-        end
-      end
-
-      def validate_cpr(cpr)
-        cpr_regex = /^(?:(?:31(?:0[13578]|1[02])|(?:30|29)(?:0[13-9]|1[0-2])|(?:0[1-9]|1[0-9]|2[0-8])(?:0[1-9]|1[0-2]))[0-9]{2}-?[0-9]|290200-?[4-9]|2902(?:(?!00)[02468][048]|[13579][26])-?[0-3])[0-9]{3}|000000-?0000$/
-        !!cpr.match(cpr_regex)
-      end
-
-      def validate_addr(addr, client)
-        address = client.address(addr)
-        address.present?
-      end
-
-      def validate_email(email)
-        email_regex = URI::MailTo::EMAIL_REGEXP
-        !!email.match(email_regex)
-      end
-
-      def validate_phone_number(phone_number)
-        dk_phone_regex = /(?:45\s?)?(?:\d{2}\s?){3}\d{2}/
-        !!phone_number.match(dk_phone_regex)
-      end
-
-      def clean_cpr(cpr)
-        cpr.tr('^0-9','')
-      end
-
-      def clean_phone(phone)
-        phone_cleaned = phone.tr('^0-9','')
-        phone_cleaned if phone_cleaned.length == 8 || phone_cleaned.length == 10 && phone_cleaned[0..1] == '45'
-      end
-
-      def clean_dob(date,format)
-        begin Date.strptime(date, format).strftime('%d%m%y') rescue nil end
-      end
-
-      def slice_file(path, prefix, suffix)
-        rows = read_spreadsheet(path)
-        indexes = ask_header_indexes(rows.first, "Pick the columns to keep")
-        file_name = "#{prefix}_#{suffix}.csv"
-        output_path = File.expand_path(file_name)
-
-        if File.exists?(output_path)
-          if yes?("The file #{file_name} already exists. Would you like to overwrite?", :yellow)
-            File.unlink(output_path)
-          else
-            return
-          end
-        end
-
-        output output_path  do |csv|
-          rows.each do |row|
-            csv << row.values_at(*indexes)
-          end
-          say "Generated file for #{suffix}.", :green
+          indexes = ask_header_indexes(rows.first, "Pick the columns to keep")
+          slice_file(rows, indexes, customer, file_suffix)
         end
       end
     end

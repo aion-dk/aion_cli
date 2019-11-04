@@ -1,12 +1,11 @@
 require 'thor'
 require 'aion_cli/commands/dawa'
 require 'aion_cli/commands/excel'
-require 'aion_cli/commands/random'
+require 'aion_cli/commands/add'
 require 'aion_cli/commands/table'
 require 'aion_cli/commands/test_data'
 require 'aion_cli/commands/text'
-require 'aion_cli/commands/validate'
-require 'aion_cli/commands/prepare'
+require 'aion_cli/commands/data'
 require 'active_support/all'
 
 module AionCLI
@@ -54,14 +53,18 @@ module AionCLI
       say(AionCLI::VERSION)
     end
 
+
+    desc 'data COMMANDS', 'Data preparation helpers'
+    subcommand 'data', AionCLI::CLI::Data
+
+    desc 'add COMMANDS', 'Data addition helpers'
+    subcommand 'add', AionCLI::CLI::Add
+    
     desc 'dawa COMMANDS', 'DAWA helpers'
     subcommand 'dawa', AionCLI::CLI::Dawa
 
-    desc 'excel COMMANDS', 'excel helpers'
+    desc 'excel COMMANDS', 'Excel helpers'
     subcommand 'excel', AionCLI::CLI::Excel
-
-    desc 'random COMMANDS', 'Random helpers'
-    subcommand 'random', AionCLI::CLI::Random
 
     desc 'table COMMANDS', 'CSV helpers'
     subcommand 'table', AionCLI::CLI::Table
@@ -72,11 +75,6 @@ module AionCLI
     desc 'text COMMANDS', 'Text helpers'
     subcommand 'text', AionCLI::CLI::Text
 
-    desc 'validate COMMANDS', 'Validation helpers'
-    subcommand 'validate', AionCLI::CLI::Validate
-
-    desc 'prepare COMMANDS', 'Preparation helpers'
-    subcommand 'prepare', AionCLI::CLI::Prepare
 
   end
 end
