@@ -119,7 +119,7 @@ module AionCLI
 
             # Build doublet index
             dict = Hash.new { |h,k| h[k] = [] }
-            rows.each.with_index(2) do |row, line_number|
+            rows.each.with_index do |row, line_number|
               key = row[index_cpr]
               unless key.blank?
                 dict[key] << line_number
@@ -265,13 +265,13 @@ module AionCLI
           case type
           when 0
             index_cpr = ask_header_index(headers, 'Specify the CPR column'); say
-            n_headers += [headers[index_cpr]+'_cleaned']
+            n_headers += ["#{headers[index_cpr]}_cleaned"]
           when 1
             index_phone = ask_header_index(headers, 'Specify the PHONE NUMBER column'); say
-            n_headers += [headers[index_phone]+'_cleaned']
+            n_headers += ["#{headers[index_phone]}_cleaned"]
           when 2
             index_dob = ask_header_index(headers, 'Specify the DATE OF BIRTH column'); say
-            n_headers += [headers[index_dob]+'_cleaned']
+            n_headers += ["#{headers[index_dob]}_cleaned"]
 
             say
             say 'Example data in DATE column:', :bold
@@ -317,7 +317,7 @@ module AionCLI
 
           #CPR cleaning
           if clean_types.include?(0)
-            rows.each.with_index(2) do |row, line_number|
+            rows.each.with_index do |row, line_number|
               cpr = row[index_cpr]
               if cpr.blank?
                 result = ''
@@ -405,13 +405,14 @@ module AionCLI
             csv << row
           end
 
+          puts dict_failed
           if dict_failed.any?
             #Gather fails in a csv
             say
-            say 'Generating file with faulty data rows', :bold
+            say 'Generating file with faulty cpr rows', :bold
             faulty_file = ask_output_path
             output faulty_file do |csv_failed|
-              csv_failed << headers
+              csv_failed << n_headers
               dict_failed.uniq.each do |line_number|
                 csv_failed << rows[line_number]
               end
