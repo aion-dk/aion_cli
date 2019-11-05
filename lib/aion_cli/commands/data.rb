@@ -15,6 +15,11 @@ module AionCLI
       include AionCLI::ApplicationHelper
       include AionCLI::PreparationHelper
 
+      desc 'blur_statistics CSV_FILE', 'Blur a statistics category when less than a specified value is present in the category'
+      def blur_statistics(path)
+        data_blur(path)
+      end
+
       desc 'validate CSV_FILE', 'Select which data you wish to validate in a CSV file'
       def validate(path)
         data_validation(path)
@@ -64,6 +69,55 @@ module AionCLI
       end
 
       private
+
+      def data_blur(path)
+        headers, *rows = read_spreadsheet(path)
+        index_stats = ask_header_index(headers, 'Specify the column that should be blurred')
+        index_merge = nil
+        merge_separator = nil
+        blur_threshold = ask_natural_number('Input the blur threshold')
+        blur_name = ask("Input name for blurred data (ex. 'Others'): ")
+        n_headers = headers
+        n_headers += ["blurred_#{headers[index_stats]}"]
+
+        say
+        say "Do you want a merge column for the blur name? (ex. '[merge_column_value] - #{blur_name}')", :cyan
+        if yes?('Yes (y) / No (n): ')
+          say
+          index_merge = ask_header_index(headers, 'Specify the column that should be merged with blur name')
+          merge_separator = ask('Specify what should separate the values (OBS: use " " to preserve outlying spaces): ')
+          merge_separator = merge_separator.gsub(/"/, '')
+        end
+
+        dict = Hash.new { |h,k| h[k] = [] }
+        rows.each.with_index do |row, line_number|
+          key = row[index_stats]
+          unless key.blank?
+            dict[key] << line_number
+          end
+        end
+
+        say 'Generating file with blur result', :bold
+        ask_output do |csv|
+          rows.each do |row|
+            value = row[index_stats]
+            if dict[value].size <= blur_threshold
+              if index_merge.nil?
+                row << blur_name
+              else
+                row << "#{row[index_merge]}#{merge_separator}#{blur_name}"
+              end
+            else
+              row << value
+            end
+          end
+
+          csv << n_headers
+          rows.each do |row|
+            csv << row
+          end
+        end
+      end
 
       def data_validation(path)
         headers, *rows = read_spreadsheet(path)
