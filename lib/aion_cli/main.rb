@@ -6,6 +6,7 @@ require 'aion_cli/commands/table'
 require 'aion_cli/commands/test_data'
 require 'aion_cli/commands/text'
 require 'aion_cli/commands/data'
+require 'aion_cli/commands/s3'
 require 'active_support/all'
 
 module AionCLI
@@ -75,6 +76,8 @@ module AionCLI
     desc 'text COMMANDS', 'Text helpers'
     subcommand 'text', AionCLI::CLI::Text
 
+    desc 's3 COMMANDS', 'S3 helpers via aion-s3 gem'
+    subcommand 's3', AionCLI::CLI::S3
 
   end
 end
