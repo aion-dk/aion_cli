@@ -144,13 +144,13 @@ module AionCLI
       end
     end
 
-    def ask_date_string(message)
+    def ask_date_string(message, allow_blank = false)
       loop do
         say(message)
 
         date = ask("Date (YYYY-MM-DD):")
 
-        unless date.match(/^\d{4}\-\d{2}\-\d{2}$/)
+        unless allow_blank || date.match(/^\d{4}\-\d{2}\-\d{2}$/)
           say("'#{date}' is invalid. Date must have this format -> YYYY-MM-DD", :red)
           next
         end

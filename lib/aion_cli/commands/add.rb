@@ -66,9 +66,11 @@ module AionCLI
 
       desc 'age CSV_FILE', 'Add age calculated from CPR birthdate to selected date. DATE defaults to "Today"'
       def age(path)
-        date = Date.parse(ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)'))
-        if date == ""
+        date_input = Date.parse(ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)', true))
+        if date_input == ""
           date = Date.today
+        else
+          date = Date.parse(date_input)
         end
         headers, *rows = read_spreadsheet(path)
         index_cpr = ask_header_index(headers, 'Specify CPR column.')
