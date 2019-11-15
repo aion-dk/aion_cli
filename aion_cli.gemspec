@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'httpclient', '~> 2.8.3'
   spec.add_dependency 'write_xlsx', '~> 0.85.5'
   spec.add_dependency 'activesupport', '~> 5.2.1'
-  #spec.add_dependency 'aion-s3', '~> 1.0'
+  spec.add_dependency 'aion-s3', '~> 1.0'
 
   spec.add_development_dependency 'bundler', '~> 1.17.1'
   spec.add_development_dependency 'rake', '~> 12.3.1'
