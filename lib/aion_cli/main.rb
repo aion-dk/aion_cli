@@ -76,8 +76,8 @@ module AionCLI
     desc 'text COMMANDS', 'Text helpers'
     subcommand 'text', AionCLI::CLI::Text
 
-    # desc 's3 COMMANDS', 'S3 helpers via aion-s3 gem'
-    # subcommand 's3', AionCLI::CLI::S3
+    desc 's3 COMMANDS', 'S3 helpers via aion-s3 gem'
+    subcommand 's3', AionCLI::CLI::S3
 
   end
 end
