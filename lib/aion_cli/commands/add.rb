@@ -108,7 +108,12 @@ module AionCLI
               end
             end
 
-            difference = (date - Date.parse(birthdate)).to_i
+            begin
+              difference = (date - Date.parse(birthdate)).to_i
+            rescue ArgumentError
+              difference = ''
+            end
+
             modulus = difference/365/4
             age = (difference-modulus)/365
             row << age
