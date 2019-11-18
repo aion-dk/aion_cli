@@ -66,7 +66,8 @@ module AionCLI
 
       desc 'age CSV_FILE', 'Add age calculated from CPR birthdate to selected date. DATE defaults to "Today"'
       def age(path)
-        date_input = Date.parse(ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)', true))
+        date_input = ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)', true)
+        date = nil
         if date_input == ""
           date = Date.today
         else
@@ -112,12 +113,12 @@ module AionCLI
 
             begin
               difference = (date - Date.parse(birthdate)).to_i
+              modulus = difference/365/4
+              age = (difference-modulus)/365
             rescue ArgumentError
-              difference = ''
+              age = nil
             end
 
-            modulus = difference/365/4
-            age = (difference-modulus)/365
             row << age
           end
 
