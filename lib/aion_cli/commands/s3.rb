@@ -12,7 +12,7 @@ module AionCLI
         password = ask("Password:")
         packer = AionS3::Packer.new(password)
 
-        output_path = ask_output_path
+        output_path = ask_unpack_path(path)
         File.open(output_path, 'wb') do |io|
           io.write(packer.unpack(data))
         end
@@ -32,7 +32,9 @@ module AionCLI
           say("Password set to #{packer.password}")
         end
 
-        output_path = ask_output_path
+        name, ext = File.basename(path), '.packed'
+        output_path = ask_output_path(ext, name)
+
         File.open(output_path, 'wb') do |io|
           io.write(packer.pack(data))
         end

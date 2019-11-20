@@ -211,6 +211,19 @@ module AionCLI
       integer_str.to_i if integer_str.match(/^\s*\d+\s*$/)
     end
 
+    def ask_unpack_path(source_path)
+      basename = File.basename(source_path)
+      parts = basename.split('.')
+      ext = parts.pop
+      if ext == 'packed'
+        ext = parts.size > 1 ? parts.pop : 'txt'
+        name = parts.join('.')
+        ask_output_path(".#{ext}", name)
+      else
+        ask_output_path('.txt', basename)
+      end
+    end
+
     private
 
     def detect_col_sep(contents)
