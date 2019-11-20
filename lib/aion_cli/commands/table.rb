@@ -288,7 +288,7 @@ module AionCLI
         end
       end
 
-      desc 'concat_csv FILE...', 'Concatenate multiple csv files into single csv file'
+      desc 'concat_csv FILE...', 'Concatenate multiple csv files into single csv file. This expects all files to be csv format.'
       def concat_csv(path, *paths)
         headers, *rows = read_csv(path)
 
