@@ -288,6 +288,30 @@ module AionCLI
         end
       end
 
+      desc 'concat_csv FILE...', 'Concatenate multiple csv files into single csv file'
+      def concat_csv(path, *paths)
+        headers, *rows = read_csv(path)
+
+        paths.each do |_path|
+          _headers, *_rows = read_csv(_path)
+
+          unless headers == _headers
+            say("Headers does not match. Ignoring file #{_path}")
+            next
+          end
+
+          rows += _rows
+        end
+
+        ask_output do |csv|
+          csv << headers
+          rows.each do |row|
+            csv << row
+            csv << row
+          end
+        end
+      end
+
       desc 'doublets CSV_FILE', 'Detect doublets'
       def doublets(path)
         headers, *rows = read_spreadsheet(path)
