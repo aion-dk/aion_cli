@@ -1,4 +1,5 @@
 require 'thor'
+require 'aion_cli/commands/avx'
 require 'aion_cli/commands/dawa'
 require 'aion_cli/commands/excel'
 require 'aion_cli/commands/add'
@@ -79,5 +80,7 @@ module AionCLI
     desc 's3 COMMANDS', 'S3 helpers via aion-s3 gem'
     subcommand 's3', AionCLI::CLI::S3
 
+    desc 'avx COMMANDS', 'AVX helpers'
+    subcommand 'avx', AionCLI::CLI::AVX
   end
 end
