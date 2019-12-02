@@ -169,9 +169,9 @@ module AionCLI
       say("Done! Output stored in #{output_path}", :green)
     end
 
-    def ask_output_path(extname = '.csv', default_name = 'out')
+    def ask_output_path(extname = '.csv', default_name = 'out', message = 'Pick a name for the output file')
       loop do
-        output_path = ask("Pick a name for the output file (default: #{default_name}#{extname}):")
+        output_path = ask("#{message} (default: #{default_name}#{extname}):")
         output_path = default_name if output_path.strip == ''
         output_path += extname if File.extname(output_path) != extname
 
