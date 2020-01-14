@@ -25,7 +25,7 @@ module AionCLI
     end
 
     def validate_phone_number(phone_number)
-      dk_phone_regex = /(?:45\s?)?(?:\d{2}\s?){3}\d{2}/
+      dk_phone_regex = /^(?:(?:00\s?|\+\s?)?45\s?)?(?:\d{2}\s?){3}\d{2}$/
       !!phone_number.match(dk_phone_regex)
     end
 
