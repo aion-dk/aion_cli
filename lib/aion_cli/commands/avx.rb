@@ -6,8 +6,8 @@ module AionCLI
     class AVX < Thor
       include AionCLI::ApplicationHelper
 
-      desc 'generate n', 'Generate n pair of election codes - public keys'
-      def generate(n)
+      desc 'credentials_print n', 'Generate and print n pair of election codes - public keys'
+      def credentials_print(n)
         credential_pairs = generate_credential_pairs(n.to_i)
 
         credential_pairs.each do |election_code, public_key|
@@ -15,13 +15,11 @@ module AionCLI
         end
       end
 
-      desc 'generate_in_file PATH', 'Generate election codes for each identifier form the file'
-      def generate_in_file(path)
+      desc 'credentials_generate PATH', 'Generate election codes and public keys for each identifier in the file'
+      def credentials_generate(path)
         headers, *rows = read_csv(path)
 
         credential_pairs = generate_credential_pairs(rows.size)
-
-        basename = File.basename(path, '.csv')
 
         # generate election codes file
         rows_plus_election_codes = rows.zip(credential_pairs.keys).map{ |row, election_code| row + [election_code] }
@@ -47,8 +45,56 @@ module AionCLI
         say("Done! Outputted files:\n#{ec_absolute_path}\n#{pk_absolute_path}")
       end
 
-      desc 'aggregate_public_keys FILE_PATHS', 'Group all public key files into one'
-      def aggregate_public_keys(*paths)
+      desc 'credentials_compute PATH', 'Compute public keys for each identifier in the file, using as election codes a specific column'
+      def credentials_compute(path)
+        headers, *rows = read_csv(path)
+
+        election_codes = []
+        loop do
+          index = ask_header_index(headers, 'What column to use as election codes?')
+          column = rows.map{ |row| row[index] }
+
+          # Error if there are empty values
+          if column.any?(&:blank?)
+            say("The column '#{headers[index]}' contains blank values. Please select another column!", :red)
+            next
+          end
+
+          # Warn if there are duplicates
+          unless column.size == column.uniq.size
+            unless yes?("The column '#{headers[index]}' contains doublet values. Do you wish to continue?", :yellow)
+              next
+            end
+          end
+
+          # Warn if there are insecure (weak) election codes
+          if column.any?{ |v| v.length < 14 }
+            unless yes?("The column '#{headers[index]}' contains insecure values. Do you wish to continue?", :yellow)
+              next
+            end
+          end
+
+          election_codes = column
+          break
+        end
+
+        public_keys = election_codes.map{ |ec| Crypto.election_code_to_public_key(ec) }
+
+        # generate public keys file
+        rows_plus_public_keys = rows.zip(public_keys).map{ |row, public_key| row + [public_key] }
+        headers_plus_public_key = headers + ['Public key']
+
+        pk_absolute_path = ask_output_path('.csv', 'public_keys', 'Pick a name for the public keys file')
+        output(pk_absolute_path) do |csv|
+          csv << headers_plus_public_key
+          rows_plus_public_keys.each{ |row| csv << row }
+        end
+
+        say("Done! Outputted file:\n#{pk_absolute_path}")
+      end
+
+      desc 'credentials_aggregate FILE_PATHS', 'Group all public key files into one'
+      def credentials_aggregate(*paths)
         public_keys = {}
 
         paths_first, *paths_rest = paths
