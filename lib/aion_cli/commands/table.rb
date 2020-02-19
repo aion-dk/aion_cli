@@ -156,6 +156,75 @@ module AionCLI
       end
 
 
+      desc 'vlookup MAIN_FILE ADDITIONAL_FILE', 'Enriches the MAIN_FILE with a lookup column from ADDITIONAL_FILE where values match in join columns'
+      def vlookup(path_a, path_b)
+        headers_a, *rows_a = read_spreadsheet(path_a)
+        headers_b, *rows_b = read_spreadsheet(path_b)
+
+        join_count = ask_natural_number('How many join columns?')
+
+        join_indices_a = []; join_indices_b = []
+        (1..join_count).each do |i|
+          join_indices_a << ask_header_index(headers_a, "Pick #{i.ordinalize} join column for MAIN_FILE")
+          join_indices_b << ask_header_index(headers_b, "Pick #{i.ordinalize} join column for ADDITIONAL_FILE")
+        end
+
+        lookup_index_b = ask_header_index(headers_b, "Pick lookup column from ADDITIONAL_FILE")
+
+        # Build search index
+        join_b_hash = {}
+        allow_empty = nil
+        rows_b.each do |row|
+          key = row.values_at(*join_indices_b)
+
+          if key.any?(&:blank?)
+            allow_empty ||= yes?('Empty value in join column for ADDITIONAL_FILE. Would you like to continue anyway?')
+            raise Thor::Error, 'Empty value in join column for ADDITIONAL_FILE' unless allow_empty
+          end
+
+          raise Thor::Error, "Duplicate key combination in join columns for ADDITIONAL_FILE (key: #{key})" if join_b_hash.has_key?(key)
+
+          join_b_hash[key] = row[lookup_index_b]
+        end
+
+        count_match = 0
+        count_defaults = 0
+
+        # Generate csv file
+        default_value = nil
+        ask_output do |csv|
+
+          csv << headers_a + [headers_b[lookup_index_b]]
+
+          rows_a.each do |row|
+            join_value = row.values_at(*join_indices_a)
+
+            if join_b_hash.key?(join_value)
+              count_match += 1
+              lookup_value = join_b_hash[join_value]
+            else
+              default_value ||= begin
+                                  if yes?('No join key combination was found in ADDITIONAL_FILE. Would you like to set a default value?')
+                                    ask('Default value:')
+                                  end
+                                end
+              raise Thor::Error, "No match key combination in join columns for ADDITIONAL_FILE (key: #{join_value})" if default_value.nil?
+
+              count_defaults += 1
+              lookup_value = default_value
+            end
+
+            csv << row + [lookup_value]
+          end
+
+        end
+
+        say
+        say "count_match    : #{count_match}"
+        say "count_defaults : #{count_defaults}"
+      end
+
+
       desc 'select MAIN_FILE ADDITIONAL_FILE', 'Select rows from MAIN_FILE where a value is also found in ADDITIONAL_FILE'
       def select(path_a, path_b)
 
