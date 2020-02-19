@@ -418,16 +418,25 @@ module AionCLI
         delimiter = ask("Pick a delimiter (default: ',' comma):")
         delimiter = ',' if delimiter.strip == ''
 
+        include_blank = nil
         ask_output do |csv|
           csv << headers
 
           rows.each do |row|
-            row[split_index].split(delimiter).each do |value|
-              value.strip!
+            value_to_split = row[split_index]
 
-              new_row = row.dup
-              new_row[split_index] = value
-              csv << new_row
+            if value_to_split.blank?
+              include_blank ||= yes?('Empty values were found. Would you like to include them?')
+
+              csv << row if include_blank
+            else
+              value_to_split.split(delimiter).each do |value|
+                value.strip!
+
+                new_row = row.dup
+                new_row[split_index] = value
+                csv << new_row
+              end
             end
           end
         end
