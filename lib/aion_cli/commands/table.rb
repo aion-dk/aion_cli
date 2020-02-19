@@ -408,6 +408,30 @@ module AionCLI
           say('No doublets found for: %s' % headers.inspect)
         end
       end
+
+
+      desc 'expand CSV_FILE', 'Expand a CSV file by splitting a column value'
+      def expand(path)
+        headers, *rows = read_spreadsheet(path)
+
+        split_index = ask_header_index(headers, "Pick a split column for CSV_FILE")
+        delimiter = ask("Pick a delimiter (default: ',' comma):")
+        delimiter = ',' if delimiter.strip == ''
+
+        ask_output do |csv|
+          csv << headers
+
+          rows.each do |row|
+            row[split_index].split(delimiter).each do |value|
+              value.strip!
+
+              new_row = row.dup
+              new_row[split_index] = value
+              csv << new_row
+            end
+          end
+        end
+      end
     end
   end
 end
