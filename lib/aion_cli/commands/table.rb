@@ -352,7 +352,6 @@ module AionCLI
           csv << headers
           rows.each do |row|
             csv << row
-            csv << row
           end
         end
       end
@@ -375,7 +374,6 @@ module AionCLI
         ask_output do |csv|
           csv << headers
           rows.each do |row|
-            csv << row
             csv << row
           end
         end
