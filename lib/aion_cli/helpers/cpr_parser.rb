@@ -121,9 +121,12 @@ class CPRParser
 
   def parse_line(line)
     offset = 0
-    record_type = line[offset, 3]; offset += 3
+    record_type = line[offset, 3];  offset += 3
+    cpr_no =      line[offset, 10]; offset += 10
+
+    # The difference between '002' and '002B' records is the length of the line.
+    # '002' has 306 characters. '002B' has 382 characters.
     record_type = '002B' if record_type == '002' && line.length > 306
-    cpr_no = line[offset, 10]; offset += 10
 
     @existent_record_type << record_type
 
