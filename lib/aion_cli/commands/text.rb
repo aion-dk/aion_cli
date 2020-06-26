@@ -51,34 +51,29 @@ module AionCLI
 
         cpr_parser = CPRParser.new
         records = {}
-
-        # TODO: investigate why line lengths differ
-        line_length = Set.new
+        unsupported_record_types = Hash.new(0)
 
         rows.each_line do |line|
           record_type = line[0, 3]
 
-          line_length << "#{record_type}: #{line.length}"
-
           case record_type
-          when '000'
-            # start record
-            production_date = line[19, 8]
-          when '999'
-            # end record
+          when '000' # start record
+          when '999' # end record
           when *cpr_parser.supported_record_types
             cpr_no, record = cpr_parser.parse_line(line)
-            if records.key?(cpr_no)
-              records[cpr_no].merge!(record)
-            else
-              records[cpr_no] = record
-            end
+
+            current_record = records[cpr_no] || {}
+            records[cpr_no] = current_record.merge(record)
+          else
+            unsupported_record_types[record_type] += 1
           end
         end
 
-        line_length.sort.each{ |ll| puts ll }
 
-        selected_attributes = []
+        if unsupported_record_types.present?
+          say("The following record types are not supported: #{unsupported_record_types.keys.map(&:inspect).join(', ')}", :yellow)
+        end
+
         if yes?('Would you like to extract default columns? (CPR, Adresseringsnavn, Køn, Fødselsdato, Etiketteadresse)')
           selected_attributes = %i(adrnvn koen foed_dt standardadr)
         else

@@ -113,7 +113,7 @@ class CPRParser
           haenstart_umrk_navne: { length: 1,  description: "Navne startdato usikkerhedsmarkering" },
           adrnvn:               { length: 34, description: "Adresseringsnavn" }
       },
-  }
+  }.freeze
 
   def initialize
     @existent_record_type = Set.new
@@ -153,115 +153,5 @@ class CPRParser
   def supported_record_types
     SUPPORTED_RECORD_TYPES
   end
-
-  # private
-  #
-  # def parse_001(line)
-  #   {
-  #       # recordtype:         line[0, 3],   # Lig tre sidste cifre i recordtype
-  #       # pnr:                line[3, 10],  # Personnummer
-  #       pnr_gaeld:            line[13, 10], # Gældende personnummer
-  #       status:               line[23, 2],  # Status
-  #       statushaenstart:      line[25, 12], # Statusdato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000 - TTMM leveres altid som 0000
-  #       statusdto_umrk:       line[37, 1],  # Statusdato usikkerhedsmarkering
-  #       koen:                 line[38, 1],  # Køn Værdisæt: M = mænd K = kvinder
-  #       foed_dt:              line[39, 10], # Fødselsdato ÅÅÅÅ-MM-DD
-  #       foed_dt_umrk:         line[49, 1],  # Fødselsdato usikkerhedsmarkering
-  #       start_dt_person:      line[50, 10], # Person startdato ÅÅÅÅ-MM-DD
-  #       start_dt_umrk_person: line[60, 1],  # Startdato usikkerhedsmarkering
-  #       slut_dt_person:       line[61, 10], # Person slutdato ÅÅÅÅ-MM-DD
-  #       slut_dt_umrk_person:  line[71, 1],  # Slutdato usikkerhedsmarkering
-  #       stilling:             line[72, 34]  # Stilling
-  #   }
-  # end
-  #
-  # def parse_002(line)
-  #   {
-  #       # recordtype:         line[0, 3],         # Lig tre sidste cifre i recordtype
-  #       # pnr:                line[3, 10],        # Personnummer
-  #       komkod:               line[13, 4],        # Kommunekode
-  #       vejkod:               line[17, 4],        # Vejkode
-  #       husnr:                line[21, 4],        # Husnummer
-  #       etage:                line[25, 2],        # Etage
-  #       sidedoer:             line[27, 4],        # Sidedør nummer
-  #       bnr:                  line[31, 4],        # Bygningsnummer
-  #       convn:                line[35, 34],       # C/O navn
-  #       tilflydto:            line[69, 12],       # Tilflytningsdato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       tilflydto_umrk:       line[81, 1],        # Tilflytningsdato usikkerhedsmarkering
-  #       tilflykomdto:         line[82, 12],       # Tilflytning kommune dato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       tilflykomdt_umrk:     line[94, 1],        # Tilflytning kommune dato usikkerhedsmarkering
-  #       fraflykomkod:         line[95, 4],        # Fraflytning kommunekode
-  #       fraflykomdto:         line[99, 12],       # Fraflytning kommune dato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       fraflykomdt_umrk:     line[111, 1],       # Fraflytning kommune dato usikkerhedsmarkering
-  #       start_mynkod_adrtxt:  line[112, 4],       # Start myndighed
-  #       adr_supladr:          line[116, 34 * 5],  # 1., 2., 3., 4. og 5. linier af supplerende adr
-  #       start_dt_adrtxt:      line[286, 10],      # Startdato ÅÅÅÅ-MM-DD
-  #       slet_dt_adrtxt:       line[296, 10]       # Slettedato ÅÅÅÅ-MM-DD
-  #   }
-  # end
-  #
-  # def parse_002B(line)
-  #   {
-  #       # recordtype:         line[0, 3],         # Lig tre sidste cifre i recordtype
-  #       # pnr:                line[3, 10],        # Personnummer
-  #       komkod:               line[13, 4],        # Kommunekode
-  #       vejkod:               line[17, 4],        # Vejkode
-  #       husnr:                line[21, 4],        # Husnummer
-  #       etage:                line[25, 2],        # Etage
-  #       sidedoer:             line[27, 4],        # Sidedør nummer
-  #       bnr:                  line[31, 4],        # Bygningsnummer
-  #       convn:                line[35, 34],       # C/O navn
-  #       tilflydto:            line[69, 12],       # Tilflytningsdato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       tilflydto_umrk:       line[81, 1],        # Tilflytningsdato usikkerhedsmarkering
-  #       tilflykomdto:         line[82, 12],       # Tilflytning kommune dato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       tilflykomdt_umrk:     line[94, 1],        # Tilflytning kommune dato usikkerhedsmarkering
-  #       fraflykomkod:         line[95, 4],        # Fraflytning kommunekode
-  #       fraflykomdto:         line[99, 12],       # Fraflytning kommune dato ÅÅÅÅMMDDTTMM - TTMM leveres altid som 0000
-  #       fraflykomdt_umrk:     line[111, 1],       # Fraflytning kommune dato usikkerhedsmarkering
-  #       start_mynkod_adrtxt:  line[112, 4],       # Start myndighed
-  #       adr_supladr:          line[116, 34 * 5],  # 1., 2., 3., 4. og 5. linier af supplerende adr
-  #       start_dt_adrtxt:      line[286, 10],      # Startdato ÅÅÅÅ-MM-DD
-  #       slet_dt_adrtxt:       line[296, 10],      # Slettedato ÅÅÅÅ-MM-DD
-  #       vejnvn:               line[306, 40],      # Vejnavn
-  #       adresse_uuid:         line[346, 36]       # Adresse UUID fx. c6db48f3-f834-4776-b6fe03127e3ec1b2
-  #   }
-  # end
-  #
-  # def parse_003(line)
-  #   {
-  #       # recordtype: line[0, 3],     # Lig tre sidste cifre i recordtype
-  #       # pnr:        line[3, 10],    # Personnummer
-  #       adrnvn:       line[13, 34],   # Adresseringsnavn
-  #       convn:        line[47, 34],   # C/O navn
-  #       lokalitet:    line[81, 34],   # Lokalitet
-  #       standardadr:  line[115, 34],  # Vejadrnvn,husnr,etage,sidedoer bnr. Etiketteadresse
-  #       bynavn:       line[149, 34],  # Bynavn
-  #       postnr:       line[183, 4],   # Postnummer
-  #       postdisttxt:  line[187, 20],  # Postdistrikt tekst
-  #       komkod:       line[207, 4],   # Kommunekode
-  #       vejkod:       line[211, 4],   # Vejkode
-  #       husnr:        line[215, 4],   # Husnummer
-  #       etage:        line[219, 2],   # Etage
-  #       sidedoer:     line[221, 4],   # Sidedør nummer
-  #       bnr:          line[225, 4],   # Bygningsnummer
-  #       vejadrnvn:    line[229, 20]   # Vejadresseringsnavn
-  #   }
-  # end
-  #
-  # def parse_008(line)
-  #   {
-  #       # recordtype:         line[0, 3],     # Lig tre sidste cifre i recordtype
-  #       # pnr:                line[3, 10],    # Personnummer
-  #       fornvn:               line[13, 50],   # Fornavn(e)
-  #       fornvn_mrk:           line[63, 1],    # Fornavn markering
-  #       melnvn:               line[64, 40],   # Mellemnavn
-  #       melnvn_mrk:           line[104, 1],   # Mellemnavn markering
-  #       efternvn:             line[105, 40],  # Efternavn
-  #       efternvn_mrk:         line[145, 1],   # Efternavn markering
-  #       nvnhaenstart:         line[146, 12],  # Navne startdato ÅÅÅÅMMDDTTM - TTMM leveres altid som 0000
-  #       haenstart_umrk_navne: line[158, 1],   # Navne startdato usikkerhedsmarkering
-  #       adrnvn:               line[159, 34]   # Adresseringsnavn
-  #   }
-  # end
 
 end
