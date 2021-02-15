@@ -224,6 +224,15 @@ module AionCLI
       end
     end
 
+    def get_column_index(headers, column_name)
+      headers.each_with_index do |header, index|
+        if header == column_name
+          return index
+        end
+      end
+
+    end
+
     private
 
     def detect_col_sep(contents)

@@ -68,6 +68,240 @@ module AionCLI
 
       end
 
+      desc 'stats_3f CSV_FILE', 'Generate an excel file with 3f statistics based on a csv_file with group and voter data'
+      def stats_3f(path)
+        headers, *rows = read_spreadsheet(path)
+
+        index_area_number = ask_header_index(headers, 'Specify the column with the AREA NUMBER')
+        index_area_text = ask_header_index(headers, 'Specify the column with the AREA TEXT')
+        index_department = ask_header_index(headers, 'Specify the column with the DEPARTMENT NUMBER')
+        index_profession = ask_header_index(headers, 'Specify the column with the PROFESSION NUMBER')
+        index_overall_groups = ask_header_index(headers, 'Specify the column with the GROUP MAPPING')
+
+        index_option_label = get_column_index(headers, 'option_label')
+
+        workbook = WriteXLSX.new(ask_output_path('.xlsx', 'overall_3f_stats', 'Pick a name for the OVERALL statistics'))
+
+        bold = workbook.add_format
+        bold.set_bold
+
+        unique_departments = rows.map{ |row| row[index_department]}.uniq.sort_by(&:to_i)
+        unique_area_numbers = rows.map{ |row| row[index_area_number] }.uniq
+
+        area_number_texts = {}
+
+        unique_area_numbers.each do |number|
+          area_number_texts[number] = {}
+          rows.each do |row|
+            next unless row[index_area_number] == number
+            if area_number_texts[number][row[index_area_text]].present?
+              area_number_texts[number][row[index_area_text]] += 1
+            else
+              area_number_texts[number][row[index_area_text]] = 1
+            end
+          end
+        end
+
+        unique_areas = rows.map{ |row| [row[index_area_number], row[index_area_text]] }.uniq{ |number,_text| number}.sort_by{ |number, _text| number.to_i}
+
+        unique_areas = []
+
+        area_number_texts.each do |area_number, value|
+          highest_text = ""
+          highest_count = 0
+          value.each do |text, count|
+            if count > highest_count
+              highest_text = text
+              highest_count = count
+            end
+          end
+
+          unique_areas << [area_number, highest_text]
+        end
+        unique_areas = unique_areas.uniq{ |number,_text| number}.sort_by{ |number, _text| number.to_i}
+
+        unique_groups = rows.map{ |row| row[index_overall_groups]}.uniq
+        unique_professions = rows.map{ |row| row[index_profession]}.uniq.sort_by(&:to_i)
+
+        # [ARK] Overblik
+        overall_worksheet = workbook.add_worksheet('Overblik')
+        overall_worksheet.write_row(0, 0, ['Overblik'], bold)
+        overall_worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
+        overall_worksheet.write_row(2, 0, ['Navn','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
+
+        unique_groups.each_with_index do |group, index|
+          group_voters = rows.select { |row| row[index_overall_groups] == group}
+          area_label = group
+
+          eligible_voters = group_voters.size
+          voted_yes = group_voters.select { |row| row[index_option_label] == 'Yes'}.size
+          voted_no = group_voters.select { |row| row[index_option_label] == 'No'}.size
+          votes_total = voted_no+voted_yes
+
+          if votes_total > 0
+            overall_worksheet.write_row(index+3, 0, [area_label, eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100])
+          else
+            overall_worksheet.write_row(index+3, 0, [area_label, eligible_voters, 0, 0, 0, 0, 0])
+          end
+        end
+
+        # SAMLET
+        all_voters = rows
+
+        eligible_voters = all_voters.size
+        voted_yes = all_voters.select { |row| row[index_option_label] == 'Yes'}.size
+        voted_no = all_voters.select { |row| row[index_option_label] == 'No'}.size
+        votes_total = voted_no+voted_yes
+
+        if votes_total > 0
+          overall_worksheet.write_row(unique_groups.size+3, 0, ['Samlet', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+        else
+          overall_worksheet.write_row(unique_groups.size+3, 0, ['Samlet', eligible_voters, 0, 0, 0, 0, 0], bold)
+        end
+
+        # [ARK] Samlet over afdelinger
+        joined_departments_worksheet = workbook.add_worksheet('Samlet for alle områder')
+        joined_departments_worksheet.write_row(0, 0, ['SAMLET'], bold)
+        joined_departments_worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
+        joined_departments_worksheet.write_row(2, 0, ['Navn','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
+
+        unique_areas.each_with_index do |(area_number, area_text), index|
+          area_voters = rows.select { |row| row[index_area_number] == area_number }
+          area_label = "#{area_number} #{area_text}"
+
+          eligible_voters = area_voters.size
+          voted_yes = area_voters.select { |row| row[index_option_label] == 'Yes'}.size
+          voted_no = area_voters.select { |row| row[index_option_label] == 'No'}.size
+          votes_total = voted_no+voted_yes
+
+          if votes_total > 0
+            joined_departments_worksheet.write_row(index+3, 0, [area_label, eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100])
+          else
+            joined_departments_worksheet.write_row(index+3, 0, [area_label, eligible_voters, 0, 0, 0, 0, 0])
+          end
+
+        end
+
+        # SAMLET
+        all_voters = rows
+
+        eligible_voters = all_voters.size
+        voted_yes = all_voters.select { |row| row[index_option_label] == 'Yes'}.size
+        voted_no = all_voters.select { |row| row[index_option_label] == 'No'}.size
+        votes_total = voted_no+voted_yes
+
+        if votes_total > 0
+          joined_departments_worksheet.write_row(unique_areas.size+3, 0, ['Samlet', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+        else
+          joined_departments_worksheet.write_row(unique_areas.size+3, 0, ['Samlet', eligible_voters, 0, 0, 0, 0, 0], bold)
+        end
+
+
+        # [ARK] Per afdeling (afd-101..)
+        unique_departments.each do |department|
+          worksheet = workbook.add_worksheet("afd-#{department}")
+          worksheet.write_row(0, 0, ["Afdeling #{department}"], bold)
+          worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
+          worksheet.write_row(2, 0, ['Navn','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
+
+          unique_areas.each_with_index do |(area_number, area_text), index|
+            area_voters = rows.select { |row| row[index_area_number] == area_number && row[index_department] == department}
+            area_label = "#{area_number} #{area_text}"
+
+            eligible_voters = area_voters.size
+            voted_yes = area_voters.select { |row| row[index_option_label] == 'Yes'}.size
+            voted_no = area_voters.select { |row| row[index_option_label] == 'No'}.size
+            votes_total = voted_no+voted_yes
+
+            if votes_total > 0
+              worksheet.write_row(index+3, 0, [area_label, eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100])
+            else
+              worksheet.write_row(index+3, 0, [area_label, eligible_voters, 0, 0, 0, 0, 0])
+            end
+
+          end
+
+          # SAMLET
+          department_voters = rows.select { |row| row[index_department] == department}
+
+          eligible_voters = department_voters.size
+          voted_yes = department_voters.select { |row| row[index_option_label] == 'Yes'}.size
+          voted_no = department_voters.select { |row| row[index_option_label] == 'No'}.size
+          votes_total = voted_no+voted_yes
+
+          if votes_total > 0
+            worksheet.write_row(unique_areas.size+3, 0, ['Samlet', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+          else
+            worksheet.write_row(unique_areas.size+3, 0, ['Samlet', eligible_voters, 0, 0, 0, 0, 0], bold)
+          end
+
+        end
+
+        workbook.close
+
+        workbook_group = WriteXLSX.new(ask_output_path('.xlsx', 'profession_3f_stats', 'Pick a name for the PROFESSION statistics'))
+
+        bold = workbook_group.add_format
+        bold.set_bold
+
+        # [ARK] Per afdeling (afd-101..)
+        unique_groups.each do |group|
+          worksheet = workbook_group.add_worksheet(group)
+          worksheet.write_row(0, 0, [group], bold)
+          worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
+          worksheet.write_row(2, 0, ['Faggruppenr.','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
+
+          index_fake = 0
+          other_voters = []
+          unique_professions.each_with_index do |profession, _index|
+            profession_voters = rows.select { |row| row[index_profession] == profession && row[index_overall_groups] == group}
+
+            eligible_voters = profession_voters.size
+            voted_yes = profession_voters.select { |row| row[index_option_label] == 'Yes'}.size
+            voted_no = profession_voters.select { |row| row[index_option_label] == 'No'}.size
+            votes_total = voted_no+voted_yes
+
+            if votes_total > 0 &&  eligible_voters >= 20
+              worksheet.write_row(index_fake+3, 0, [profession, eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100])
+              index_fake += 1
+            else
+              other_voters += profession_voters
+            end
+
+          end
+
+          # ANDRE
+          eligible_voters = other_voters.size
+          voted_yes = other_voters.select { |row| row[index_option_label] == 'Yes'}.size
+          voted_no = other_voters.select { |row| row[index_option_label] == 'No'}.size
+          votes_total = voted_no+voted_yes
+
+          if votes_total > 0
+            worksheet.write_row(index_fake+4, 0, ['Andre', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+          else
+            worksheet.write_row(index_fake+4, 0, ['Andre', eligible_voters, 0, 0, 0, 0, 0], bold)
+          end
+
+          # SAMLET
+          group_voters = rows.select { |row| row[index_overall_groups] == group}
+
+          eligible_voters = group_voters.size
+          voted_yes = group_voters.select { |row| row[index_option_label] == 'Yes'}.size
+          voted_no = group_voters.select { |row| row[index_option_label] == 'No'}.size
+          votes_total = voted_no+voted_yes
+
+          if votes_total > 0
+            worksheet.write_row(index_fake+5, 0, ['Samlet', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+          else
+            worksheet.write_row(index_fake+5, 0, ['Samlet', eligible_voters, 0, 0, 0, 0, 0], bold)
+          end
+
+        end
+
+        workbook_group.close
+      end
+
+
       private
 
       def data_blur(path)
