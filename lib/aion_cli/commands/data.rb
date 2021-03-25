@@ -134,8 +134,8 @@ module AionCLI
           area_label = group
 
           eligible_voters = group_voters.size
-          voted_yes = group_voters.select { |row| row[index_option_label] == 'Yes'}.size
-          voted_no = group_voters.select { |row| row[index_option_label] == 'No'}.size
+          voted_yes = group_voters.select { |row| row[index_option_label] == 'For'}.size
+          voted_no = group_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
@@ -149,8 +149,8 @@ module AionCLI
         all_voters = rows
 
         eligible_voters = all_voters.size
-        voted_yes = all_voters.select { |row| row[index_option_label] == 'Yes'}.size
-        voted_no = all_voters.select { |row| row[index_option_label] == 'No'}.size
+        voted_yes = all_voters.select { |row| row[index_option_label] == 'For'}.size
+        voted_no = all_voters.select { |row| row[index_option_label] == 'Against'}.size
         votes_total = voted_no+voted_yes
 
         if votes_total > 0
@@ -170,8 +170,8 @@ module AionCLI
           area_label = "#{area_number} #{area_text}"
 
           eligible_voters = area_voters.size
-          voted_yes = area_voters.select { |row| row[index_option_label] == 'Yes'}.size
-          voted_no = area_voters.select { |row| row[index_option_label] == 'No'}.size
+          voted_yes = area_voters.select { |row| row[index_option_label] == 'For'}.size
+          voted_no = area_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
@@ -186,8 +186,8 @@ module AionCLI
         all_voters = rows
 
         eligible_voters = all_voters.size
-        voted_yes = all_voters.select { |row| row[index_option_label] == 'Yes'}.size
-        voted_no = all_voters.select { |row| row[index_option_label] == 'No'}.size
+        voted_yes = all_voters.select { |row| row[index_option_label] == 'For'}.size
+        voted_no = all_voters.select { |row| row[index_option_label] == 'Against'}.size
         votes_total = voted_no+voted_yes
 
         if votes_total > 0
@@ -209,8 +209,8 @@ module AionCLI
             area_label = "#{area_number} #{area_text}"
 
             eligible_voters = area_voters.size
-            voted_yes = area_voters.select { |row| row[index_option_label] == 'Yes'}.size
-            voted_no = area_voters.select { |row| row[index_option_label] == 'No'}.size
+            voted_yes = area_voters.select { |row| row[index_option_label] == 'For'}.size
+            voted_no = area_voters.select { |row| row[index_option_label] == 'Against'}.size
             votes_total = voted_no+voted_yes
 
             if votes_total > 0
@@ -225,8 +225,8 @@ module AionCLI
           department_voters = rows.select { |row| row[index_department] == department}
 
           eligible_voters = department_voters.size
-          voted_yes = department_voters.select { |row| row[index_option_label] == 'Yes'}.size
-          voted_no = department_voters.select { |row| row[index_option_label] == 'No'}.size
+          voted_yes = department_voters.select { |row| row[index_option_label] == 'For'}.size
+          voted_no = department_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
@@ -244,7 +244,7 @@ module AionCLI
         bold = workbook_group.add_format
         bold.set_bold
 
-        # [ARK] Per afdeling (afd-101..)
+        # [ARK] Per faggruppe
         unique_groups.each do |group|
           worksheet = workbook_group.add_worksheet(group)
           worksheet.write_row(0, 0, [group], bold)
@@ -257,8 +257,8 @@ module AionCLI
             profession_voters = rows.select { |row| row[index_profession] == profession && row[index_overall_groups] == group}
 
             eligible_voters = profession_voters.size
-            voted_yes = profession_voters.select { |row| row[index_option_label] == 'Yes'}.size
-            voted_no = profession_voters.select { |row| row[index_option_label] == 'No'}.size
+            voted_yes = profession_voters.select { |row| row[index_option_label] == 'For'}.size
+            voted_no = profession_voters.select { |row| row[index_option_label] == 'Against'}.size
             votes_total = voted_no+voted_yes
 
             if votes_total > 0 &&  eligible_voters >= 20
@@ -272,8 +272,8 @@ module AionCLI
 
           # ANDRE
           eligible_voters = other_voters.size
-          voted_yes = other_voters.select { |row| row[index_option_label] == 'Yes'}.size
-          voted_no = other_voters.select { |row| row[index_option_label] == 'No'}.size
+          voted_yes = other_voters.select { |row| row[index_option_label] == 'For'}.size
+          voted_no = other_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
@@ -286,8 +286,8 @@ module AionCLI
           group_voters = rows.select { |row| row[index_overall_groups] == group}
 
           eligible_voters = group_voters.size
-          voted_yes = group_voters.select { |row| row[index_option_label] == 'Yes'}.size
-          voted_no = group_voters.select { |row| row[index_option_label] == 'No'}.size
+          voted_yes = group_voters.select { |row| row[index_option_label] == 'For'}.size
+          voted_no = group_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
