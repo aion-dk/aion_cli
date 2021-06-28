@@ -136,6 +136,24 @@ module AionCLI
         end
       end
 
+      desc 'one_quick', 'Computes one public key based on a given number of factors'
+      def one_quick
+
+        n = ask_natural_number("How many election codes?")
+
+        election_codes = (1..n).map do |x|
+          ask("Election code #{x}:")
+        end
+
+        public_keys = election_codes.map{ |ec| Crypto.election_code_to_public_key(ec) }
+
+        public_keys.each_with_index do |pk,i|
+          say("Public key #{i+1}: #{pk}")
+        end
+
+        aggregated_public_key = public_keys.inject { |out,pk| Crypto.combine_public_keys(out, pk) }
+        say("Aggregated public key: #{aggregated_public_key}")
+      end
 
       private
 
