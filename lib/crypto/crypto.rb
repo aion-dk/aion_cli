@@ -1,5 +1,6 @@
 require 'openssl'
 require 'securerandom'
+require 'crypto/schnorr_signature'
 
 module Crypto
 

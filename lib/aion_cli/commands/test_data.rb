@@ -16,8 +16,8 @@ module AionCLI
 
         raise ArgumentError, 'Argument must be a positive number between 1 and 1000000' unless 1 <= rows && rows <= 1000000
 
-        factor1_generator = UniqueStringGenerator.new { (10000000 + SecureRandom.random_number(99999999 - 10000000)).to_s }
-        factor2_generator = UniqueStringGenerator.new { 9.times.map { VALID_CODE_CHARS[SecureRandom.random_number(VALID_CODE_CHARS.size)] }.join('') }
+        identifier_generator = UniqueStringGenerator.new { (10000000 + SecureRandom.random_number(99999999 - 10000000)).to_s }
+        election_code_generator = UniqueStringGenerator.new { 9.times.map { VALID_CODE_CHARS[SecureRandom.random_number(VALID_CODE_CHARS.size)] }.join('') }
 
         col_sep = Faker::Boolean.boolean(0.8) ? ';' : ','
 
@@ -29,6 +29,10 @@ module AionCLI
         encoding = encodings.sample
 
         districts = (1..5).map { |n| "District #{n}"}
+        abs = %w[A B]
+
+        col_sep = ';'
+        encoding = Encoding::UTF_8
 
         age_groups = [
             '18-30 år',
@@ -47,15 +51,36 @@ module AionCLI
         ]
 
         CSV.open(ask_output_path, 'w+', col_sep: col_sep, encoding: encodings.sample) do |csv|
-          csv << %w(factor1 factor2 district weight age_group)
+          csv << %w[
+            identifier
+            election_code
+            public_key
+            signature
+            district
+            constant
+            weight
+            age_group
+            name
+            ab
+          ]
 
           rows.times do
+            election_code = election_code_generator.get
+            private_key = Crypto.election_code_to_private_key(election_code)
+            public_key = Crypto.election_code_to_public_key(election_code)
+            signature = Crypto.generate_schnorr_signature('', private_key)
+
             csv << [
-                factor1_generator.get,
-                factor2_generator.get,
+                identifier_generator.get,
+                election_code,
+                public_key,
+                signature,
                 districts.sample,
+                'constant',
                 Faker::Number.between(1, 200),
-                age_groups.sample
+                age_groups.sample,
+                Faker::Name.name_with_middle,
+                abs.sample
             ]
           end
         end
