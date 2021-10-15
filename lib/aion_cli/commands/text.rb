@@ -64,7 +64,7 @@ module AionCLI
         until start_regex.is_a? Regexp
           begin
             start_regex = Regexp.new(ask("Specify the regex to start line extract"))
-            say "Interpreted as: #{start_regex.inspect}"
+            say "Interpreted as: #{start_regex.inspect}", :green
           rescue
             start_regex = ""
             say "Could not parse regex", :yellow
@@ -73,7 +73,7 @@ module AionCLI
         until stop_regex.is_a? Regexp
           begin
             stop_regex = Regexp.new(ask("Specify the regex to end line extract"))
-            say "Interpreted as: #{stop_regex.inspect}"
+            say "Interpreted as: #{stop_regex.inspect}", :green
           rescue
             stop_regex = ""
             say "Could not parse regex", :yellow
