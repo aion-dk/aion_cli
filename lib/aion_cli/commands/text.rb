@@ -62,10 +62,22 @@ module AionCLI
         stop_regex = ""
 
         until start_regex.is_a? Regexp
-          start_regex = Regexp.new(ask("Specify the regex to start line extract")) rescue start_regex = ""
+          begin
+            start_regex = Regexp.new(ask("Specify the regex to start line extract"))
+            say "Interpreted as: #{start_regex.inspect}"
+          rescue
+            start_regex = ""
+            say "Could not parse regex", :yellow
+          end
         end
         until stop_regex.is_a? Regexp
-          stop_regex = Regexp.new(ask("Specify the regex to end line extract")) rescue stop_regex = ""
+          begin
+            stop_regex = Regexp.new(ask("Specify the regex to end line extract"))
+            say "Interpreted as: #{stop_regex.inspect}"
+          rescue
+            stop_regex = ""
+            say "Could not parse regex", :yellow
+          end
         end
 
         absolute_path = File.absolute_path(path)
@@ -73,17 +85,18 @@ module AionCLI
 
         storage_enabled = false
         keep_lines = []
-        file_lines.each_with_index do |line, index|
+        file_lines.each do |line|
           storage_enabled = true if line.match? start_regex
           storage_enabled = false if line.match?(stop_regex)
-          keep_lines << index if storage_enabled
+          keep_lines << line if storage_enabled
         end
+
+        puts "Total lines within match criterias: #{keep_lines.size}"
 
         out_path = ask_output_path('.txt')
         File.open(out_path, 'w+') do |f|
-          f.write(file_lines.values_at(*keep_lines).join)
+          f.write(keep_lines.join)
         end
-        puts "Total lines within match criterias: #{keep_lines.size}"
       end
 
       desc 'cpr_to_csv TEXT_FILE', 'Converts a CPR data file into a UTF-8 csv file'
@@ -134,3 +147,4 @@ module AionCLI
 
     end
   end
+end
