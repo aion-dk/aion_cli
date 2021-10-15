@@ -44,6 +44,48 @@ module AionCLI
         $stdout << read_file(absolute_path).gsub(/\r\n?/, "\n")
       end
 
+      desc 'concat_text_files TEXT_FILES', 'Concatenates several text files'
+      def concat_text_files(*paths)
+        out_path = ask_output_path('.txt')
+        File.open(out_path, 'w+') do |f|
+          paths.each do |path|
+            absolute_path = File.absolute_path(path)
+            f.write(read_file(absolute_path))
+          end
+        end
+        say "Concatenated #{paths.size} files"
+      end
+
+      desc 'filter_multi_lines TEXT_FILE', 'Extracts lines from a text file that appear between two regex matches'
+      def filter_multi_lines(path)
+        start_regex = ""
+        stop_regex = ""
+
+        until start_regex.is_a? Regexp
+          start_regex = Regexp.new(ask("Specify the regex to start line extract")) rescue start_regex = ""
+        end
+        until stop_regex.is_a? Regexp
+          stop_regex = Regexp.new(ask("Specify the regex to end line extract")) rescue stop_regex = ""
+        end
+
+        absolute_path = File.absolute_path(path)
+        file_lines = read_file(absolute_path).lines
+
+        storage_enabled = false
+        keep_lines = []
+        file_lines.each_with_index do |line, index|
+          storage_enabled = true if line.match? start_regex
+          storage_enabled = false if line.match?(stop_regex)
+          keep_lines << index if storage_enabled
+        end
+
+        out_path = ask_output_path('.txt')
+        File.open(out_path, 'w+') do |f|
+          f.write(file_lines.values_at(*keep_lines).join)
+        end
+        puts "Total lines within match criterias: #{keep_lines.size}"
+      end
+
       desc 'cpr_to_csv TEXT_FILE', 'Converts a CPR data file into a UTF-8 csv file'
       def cpr_to_csv(path)
         absolute_path = File.absolute_path(path)
@@ -92,4 +134,3 @@ module AionCLI
 
     end
   end
-end
