@@ -1,5 +1,5 @@
 require 'singleton'
-require 'httpclient'
+require 'http'
 require 'json'
 
 module AionCLI
@@ -10,12 +10,7 @@ module AionCLI
     URL_SCRUB_ADDRESS = 'https://dawa.aws.dk/datavask/adresser'
     URL_PREFIX_ADDRESS = 'https://dawa.aws.dk/adresser/'
 
-    def initialize
-      @http = HTTPClient.new
-      @http.connect_timeout = 5
-      @http.send_timeout    = 30
-      @http.receive_timeout = 30
-    end
+    def initialize; end
 
     def scrub(address_string)
       request(URL_SCRUB_ADDRESS, betegnelse: prepare_address_string(address_string))
@@ -87,7 +82,7 @@ module AionCLI
 
     # Helper method for returning objects from requests
     def request(url, params = {})
-      json = @http.get_content(url, params)
+      json = HTTP.timeout(connect: 5, write: 30, read: 30).get(url, params: params).to_s
       JSON.parse(json)
     rescue => e
       $stderr << e.message
