@@ -50,8 +50,10 @@ module AionCLI
       say("aion script installed into path #{path}")
     end
 
+    method_option :ruby, type: :boolean, desc: 'Also print version of ruby used to run CLI'
     desc 'version', 'Print aion version and exit'
     def version
+      say("Running ruby version is #{RUBY_VERSION}") if options[:ruby]
       say(AionCLI::VERSION)
     end
 
