@@ -8,6 +8,7 @@ require 'aion_cli/commands/test_data'
 require 'aion_cli/commands/text'
 require 'aion_cli/commands/data'
 require 'aion_cli/commands/s3'
+require 'aion_cli/commands/stride'
 require 'active_support/all'
 
 module AionCLI
@@ -84,5 +85,8 @@ module AionCLI
 
     desc 'avx COMMANDS', 'AVX helpers'
     subcommand 'avx', AionCLI::CLI::AVX
+
+    desc 'stride COMMANDS', 'STRIDE threat modelling helpers'
+    subcommand 'stride', AionCLI::CLI::STRIDE
   end
 end
