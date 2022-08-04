@@ -6,9 +6,9 @@ module AionCLI
   class DAWAClient
     include Singleton
 
-    URL_MUNICIPALITIES = 'https://dawa.aws.dk/kommuner'
-    URL_SCRUB_ADDRESS = 'https://dawa.aws.dk/datavask/adresser'
-    URL_PREFIX_ADDRESS = 'https://dawa.aws.dk/adresser/'
+    URL_MUNICIPALITIES = 'https://api.dataforsyningen.dk/kommuner'
+    URL_SCRUB_ADDRESS = 'https://api.dataforsyningen.dk/datavask/adresser'
+    URL_PREFIX_ADDRESS = 'https://api.dataforsyningen.dk/adresser/'
 
     def initialize; end
 
