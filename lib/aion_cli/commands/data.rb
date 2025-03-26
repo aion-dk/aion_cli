@@ -68,8 +68,8 @@ module AionCLI
 
       end
 
-      desc 'stats_3f CSV_FILE', 'Generate an excel file with 3f statistics based on a csv_file with group and voter data'
-      def stats_3f(path)
+      desc 'stats_3f CSV_FILE JSON_FILE', 'Generate an excel file with 3f statistics based on a csv_file with group and voter data'
+      def stats_3f(path, json_path)
         headers, *rows = read_spreadsheet(path)
 
         index_area_number = ask_header_index(headers, 'Specify the column with the AREA NUMBER')
@@ -78,6 +78,9 @@ module AionCLI
         index_profession = ask_header_index(headers, 'Specify the column with the PROFESSION NUMBER')
         index_overall_groups = ask_header_index(headers, 'Specify the column with the GROUP MAPPING')
 
+        file = File.read(json_path)
+        total_json = JSON.parse(file).first.last # Value of first voting round
+
         index_option_label = get_column_index(headers, 'option_label')
 
         workbook = WriteXLSX.new(ask_output_path('.xlsx', 'overall_3f_stats', 'Pick a name for the OVERALL statistics'))
@@ -85,8 +88,8 @@ module AionCLI
         bold = workbook.add_format
         bold.set_bold
 
-        unique_departments = rows.map{ |row| row[index_department]}.uniq.sort_by(&:to_i)
-        unique_area_numbers = rows.map{ |row| row[index_area_number] }.uniq
+        unique_departments = total_json[headers[index_department]].keys.sort_by(&:to_i)
+        unique_area_numbers = total_json[headers[index_area_number]].keys
 
         area_number_texts = {}
 
@@ -101,8 +104,6 @@ module AionCLI
             end
           end
         end
-
-        unique_areas = rows.map{ |row| [row[index_area_number], row[index_area_text]] }.uniq{ |number,_text| number}.sort_by{ |number, _text| number.to_i}
 
         unique_areas = []
 
@@ -120,8 +121,8 @@ module AionCLI
         end
         unique_areas = unique_areas.uniq{ |number,_text| number}.sort_by{ |number, _text| number.to_i}
 
-        unique_groups = rows.map{ |row| row[index_overall_groups]}.uniq
-        unique_professions = rows.map{ |row| row[index_profession]}.uniq.sort_by(&:to_i)
+        unique_groups = total_json[headers[index_overall_groups]].keys
+        unique_professions = total_json[headers[index_profession]].keys.sort_by(&:to_i)
 
         # [ARK] Overblik
         overall_worksheet = workbook.add_worksheet('Overblik')
@@ -133,7 +134,7 @@ module AionCLI
           group_voters = rows.select { |row| row[index_overall_groups] == group}
           area_label = group
 
-          eligible_voters = group_voters.size
+          eligible_voters = total_json[headers[index_overall_groups]][group] || 0
           voted_yes = group_voters.select { |row| row[index_option_label] == 'For'}.size
           voted_no = group_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
@@ -148,7 +149,7 @@ module AionCLI
         # SAMLET
         all_voters = rows
 
-        eligible_voters = all_voters.size
+        eligible_voters = total_json["total_eligible"] || 0
         voted_yes = all_voters.select { |row| row[index_option_label] == 'For'}.size
         voted_no = all_voters.select { |row| row[index_option_label] == 'Against'}.size
         votes_total = voted_no+voted_yes
@@ -169,7 +170,7 @@ module AionCLI
           area_voters = rows.select { |row| row[index_area_number] == area_number }
           area_label = "#{area_number} #{area_text}"
 
-          eligible_voters = area_voters.size
+          eligible_voters = total_json[headers[index_area_number]][area_number] || 0
           voted_yes = area_voters.select { |row| row[index_option_label] == 'For'}.size
           voted_no = area_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
@@ -185,7 +186,7 @@ module AionCLI
         # SAMLET
         all_voters = rows
 
-        eligible_voters = all_voters.size
+        eligible_voters = total_json["total_eligible"] || 0
         voted_yes = all_voters.select { |row| row[index_option_label] == 'For'}.size
         voted_no = all_voters.select { |row| row[index_option_label] == 'Against'}.size
         votes_total = voted_no+voted_yes
@@ -199,7 +200,7 @@ module AionCLI
 
         # [ARK] Per afdeling (afd-101..)
         unique_departments.each do |department|
-          worksheet = workbook.add_worksheet("afd-#{department}")
+          worksheet = workbook.add_worksheet("afd-#{department}".truncate(31))
           worksheet.write_row(0, 0, ["Afdeling #{department}"], bold)
           worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
           worksheet.write_row(2, 0, ['Navn','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
@@ -208,7 +209,7 @@ module AionCLI
             area_voters = rows.select { |row| row[index_area_number] == area_number && row[index_department] == department}
             area_label = "#{area_number} #{area_text}"
 
-            eligible_voters = area_voters.size
+            eligible_voters = total_json["Områdenr Afdelingsnr"]["#{area_number} #{department}"] || 0
             voted_yes = area_voters.select { |row| row[index_option_label] == 'For'}.size
             voted_no = area_voters.select { |row| row[index_option_label] == 'Against'}.size
             votes_total = voted_no+voted_yes
@@ -224,7 +225,7 @@ module AionCLI
           # SAMLET
           department_voters = rows.select { |row| row[index_department] == department}
 
-          eligible_voters = department_voters.size
+          eligible_voters = total_json[headers[index_department]][department] || 0
           voted_yes = department_voters.select { |row| row[index_option_label] == 'For'}.size
           voted_no = department_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
@@ -246,46 +247,46 @@ module AionCLI
 
         # [ARK] Per faggruppe
         unique_groups.each do |group|
-          worksheet = workbook_group.add_worksheet(group)
+          worksheet = workbook_group.add_worksheet(group.truncate(31))
           worksheet.write_row(0, 0, [group], bold)
           worksheet.write_row(1, 0, ['','','Stemmer','','Stemmeprocenter'], bold)
           worksheet.write_row(2, 0, ['Faggruppenr.','Stemmeberettigede','Ja','Nej','Ja','Nej','Stemmepct.'], bold)
 
           index_fake = 0
           other_voters = []
+          other_voters_total = 0
           unique_professions.each_with_index do |profession, _index|
             profession_voters = rows.select { |row| row[index_profession] == profession && row[index_overall_groups] == group}
 
-            eligible_voters = profession_voters.size
+            eligible_voters = total_json["Faggruppe - Group"]["#{profession} #{group}"] || 0
             voted_yes = profession_voters.select { |row| row[index_option_label] == 'For'}.size
             voted_no = profession_voters.select { |row| row[index_option_label] == 'Against'}.size
             votes_total = voted_no+voted_yes
 
-            if votes_total > 0 &&  eligible_voters >= 20
+            if votes_total > 0 && eligible_voters >= 20
               worksheet.write_row(index_fake+3, 0, [profession, eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100])
               index_fake += 1
             else
               other_voters += profession_voters
+              other_voters_total += eligible_voters
             end
-
           end
 
           # ANDRE
-          eligible_voters = other_voters.size
           voted_yes = other_voters.select { |row| row[index_option_label] == 'For'}.size
           voted_no = other_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
 
           if votes_total > 0
-            worksheet.write_row(index_fake+4, 0, ['Andre', eligible_voters, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/eligible_voters) * 100], bold)
+            worksheet.write_row(index_fake+4, 0, ['Andre', other_voters_total, voted_yes, voted_no, (voted_yes/votes_total.to_f) * 100, (voted_no/votes_total.to_f) * 100, (votes_total.to_f/other_voters_total) * 100], bold)
           else
-            worksheet.write_row(index_fake+4, 0, ['Andre', eligible_voters, 0, 0, 0, 0, 0], bold)
+            worksheet.write_row(index_fake+4, 0, ['Andre', other_voters_total, 0, 0, 0, 0, 0], bold)
           end
 
           # SAMLET
           group_voters = rows.select { |row| row[index_overall_groups] == group}
 
-          eligible_voters = group_voters.size
+          eligible_voters = total_json[headers[index_overall_groups]][group] || 0
           voted_yes = group_voters.select { |row| row[index_option_label] == 'For'}.size
           voted_no = group_voters.select { |row| row[index_option_label] == 'Against'}.size
           votes_total = voted_no+voted_yes
@@ -295,7 +296,6 @@ module AionCLI
           else
             worksheet.write_row(index_fake+5, 0, ['Samlet', eligible_voters, 0, 0, 0, 0, 0], bold)
           end
-
         end
 
         workbook_group.close
