@@ -77,9 +77,10 @@ module AionCLI
         index_department = ask_header_index(headers, 'Specify the column with the DEPARTMENT NUMBER')
         index_profession = ask_header_index(headers, 'Specify the column with the PROFESSION NUMBER')
         index_overall_groups = ask_header_index(headers, 'Specify the column with the GROUP MAPPING')
+        voting_round_reference = ask("Specify the VOTING ROUNDS REFERENCE to use for voter totals from the eligible voters file (ex. 'voting_round_1'): ")
 
         file = File.read(json_path)
-        total_json = JSON.parse(file).first.last # Value of first voting round
+        total_json = JSON.parse(file)[voting_round_reference] # Value of first voting round
 
         index_option_label = get_column_index(headers, 'option_label')
 
