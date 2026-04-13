@@ -41,7 +41,7 @@ module AionCLI
       # Remove BOM from contents
       content.sub!("\xEF\xBB\xBF", '')
       options[:col_sep] ||= detect_col_sep(content)
-      CSV.parse(content, options)
+      CSV.parse(content, **options)
     end
 
     # CSV Helpers
@@ -177,7 +177,7 @@ module AionCLI
 
         absolute_output_path = File.expand_path(output_path)
 
-        if File.exists?(absolute_output_path)
+        if File.exist?(absolute_output_path)
           if yes?('The file already exists. Would you like to overwrite?', :yellow)
             File.unlink(absolute_output_path)
           else
@@ -196,7 +196,7 @@ module AionCLI
 
         absolute_output_dir = File.expand_path(output_dir)
 
-        if File.exists?(absolute_output_dir)
+        if File.exist?(absolute_output_dir)
           say("Already exists: #{absolute_output_dir}", :red)
           next
         end

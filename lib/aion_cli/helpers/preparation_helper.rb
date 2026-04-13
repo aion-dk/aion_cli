@@ -46,7 +46,7 @@ module AionCLI
       file_name = "#{prefix}_#{suffix}.csv"
       output_path = File.expand_path(file_name)
 
-      if File.exists?(output_path)
+      if File.exist?(output_path)
         if yes?("The file #{file_name} already exists. Would you like to overwrite?", :yellow)
           File.unlink(output_path)
         else

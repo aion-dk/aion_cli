@@ -40,7 +40,7 @@ module AionCLI
 
       path = '/usr/local/bin/aion'
 
-      if File.exists?(path)
+      if File.exist?(path)
         say("#{path} already exists")
         return if no?('Do you want to overwrite?')
       end
