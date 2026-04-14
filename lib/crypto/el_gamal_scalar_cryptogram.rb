@@ -12,11 +12,11 @@ module Crypto
     def initialize(randomness, ciphertext)
       @randomness, @ciphertext = randomness, ciphertext
 
-      (randomness.is_a?(OpenSSL::PKey::EC::Point) &&
-          randomness.on_curve?) or raise ArgumentError, 'randomness is not a valid point.'
+      ((randomness.is_a?(OpenSSL::PKey::EC::Point) &&
+          randomness.on_curve?) || raise(ArgumentError, 'randomness is not a valid point.'))
 
-      (ciphertext.is_a?(OpenSSL::BN) &&
-          ciphertext == ciphertext % CURVE.group.order) or raise ArgumentError, 'ciphertext is not a valid integer.'
+      ((ciphertext.is_a?(OpenSSL::BN) &&
+          ciphertext == ciphertext % CURVE.group.order) || raise(ArgumentError, 'ciphertext is not a valid integer.'))
     end
 
     # Instantiates an {ElGamalScalarCryptogram} from a given string
@@ -44,7 +44,7 @@ module Crypto
     # @param randomness (OpenSSL::BN) The random value used to encrypt.
     # @return (ElGamalScalarCryptogram) a new scalar cryptogram
     def self.encrypt(message, public_key, randomness)
-      message == message % CURVE.group.order or raise ArgumentError, 'message is not a valid integer.'
+      (message == message % CURVE.group.order) || raise(ArgumentError, 'message is not a valid integer.')
 
       randomness_point = CURVE.group.generator.mul(randomness)
 
@@ -79,7 +79,7 @@ module Crypto
     # Outputs the cryptogram as a string with both values encoded as hex, concatenated by a comma
     #
     # @return (String) The encoded cryptogram.
-    def to_s()
+    def to_s
       Crypto.point_to_hex(@randomness) + ',' + Crypto.bn_to_hex(@ciphertext)
     end
   end

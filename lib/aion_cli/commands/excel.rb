@@ -6,6 +6,7 @@ require 'aion_cli/helpers/application_helper'
 module AionCLI
   module CLI
     class Excel < Thor
+      include AionCLI::ApplicationHelper
 
       desc 'to_csv', 'Convert Excel file to CSV'
       long_desc <<-LONG_DESC
@@ -13,13 +14,13 @@ module AionCLI
         With rejection of top and left padding cells.
       LONG_DESC
 
-      option :sheet, aliasses: '-s', banner: 'Sheet number'
+      option :sheet, aliases: '-s', banner: 'Sheet number'
       def to_csv(path)
         absolute_path = File.absolute_path(path)
         xlsx = Roo::Spreadsheet.open(absolute_path)
 
-        unless options[:s].nil?
-          sheet_number = options[:s].to_i
+        unless options[:sheet].nil?
+          sheet_number = options[:sheet].to_i
           xlsx.default_sheet = xlsx.sheets[sheet_number]
         end
 

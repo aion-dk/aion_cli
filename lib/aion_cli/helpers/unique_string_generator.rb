@@ -1,3 +1,5 @@
+require 'set'
+
 class UniqueStringGenerator
 
   def initialize(used_values = [], &block)

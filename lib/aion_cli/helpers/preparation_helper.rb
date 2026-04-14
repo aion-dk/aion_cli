@@ -1,4 +1,7 @@
 
+require 'date'
+require 'uri'
+
 module AionCLI
   module PreparationHelper
 
@@ -39,7 +42,9 @@ module AionCLI
     end
 
     def clean_dob(date,format)
-      begin Date.strptime(date, format).strftime('%d%m%y') rescue nil end
+      Date.strptime(date, format).strftime('%d%m%y')
+    rescue ArgumentError
+      nil
     end
 
     def slice_file(rows, indexes, prefix, suffix)

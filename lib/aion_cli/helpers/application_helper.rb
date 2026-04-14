@@ -1,5 +1,7 @@
 require 'csv'
 require 'charlock_holmes'
+require 'fileutils'
+require 'roo'
 
 module AionCLI
   module ApplicationHelper
@@ -8,14 +10,14 @@ module AionCLI
 
     def read_spreadsheet(path)
       absolute_path = File.expand_path(path)
-      case File.extname(path)
+      case File.extname(absolute_path)
       when '.csv'
         table = read_csv(path)
       when '.xlsx'
         size = File.size(absolute_path)
         size_mb = (size / 1024.0 / 1024.0).round
         if size_mb > 5
-          say("The XSLT file #{absolute_path} is ~ #{size_mb}MB.")
+          say("The XLSX file #{absolute_path} is ~ #{size_mb}MB.")
           say('To improve the speed, consider converting the file to a csv.')
           unless yes?('Would you like to continue?', :yellow)
             say('Done', :green)
@@ -48,7 +50,8 @@ module AionCLI
     def read_file(path)
       content = File.read(path)
       detection = CharlockHolmes::EncodingDetector.detect(content)
-      CharlockHolmes::Converter.convert(content, detection[:encoding], 'UTF-8')
+      source_encoding = detection&.dig(:encoding) || 'UTF-8'
+      CharlockHolmes::Converter.convert(content, source_encoding, 'UTF-8')
     end
 
     def ask_header_index(headers, message)
@@ -150,7 +153,7 @@ module AionCLI
 
         date = ask("Date (YYYY-MM-DD):")
 
-        unless allow_blank || date.match(/^\d{4}\-\d{2}\-\d{2}$/)
+        unless allow_blank || date.match?(/^\d{4}-\d{2}-\d{2}$/)
           say("'#{date}' is invalid. Date must have this format -> YYYY-MM-DD", :red)
           next
         end
@@ -225,25 +228,20 @@ module AionCLI
     end
 
     def get_column_index(headers, column_name)
-      headers.each_with_index do |header, index|
-        if header == column_name
-          return index
-        end
-      end
-
+      headers.index(column_name)
     end
 
     private
 
     def detect_col_sep(contents)
-      test_contents = contents.lines.first.chomp
-      test_results = [',',';',"\t"].map { |col_sep| [count_col_sep(test_contents, col_sep), col_sep ] }
+      test_contents = contents.lines.first.to_s.chomp
+      test_results = [',', ';', "\t"].map { |col_sep| [count_col_sep(test_contents, col_sep), col_sep] }
       test_results.sort.last.last
     end
 
     def count_col_sep(test_contents, col_sep)
-      CSV.parse(test_contents, col_sep: col_sep).first.size
-    rescue
+      CSV.parse(test_contents, col_sep: col_sep).first&.size.to_i
+    rescue StandardError
       0
     end
 

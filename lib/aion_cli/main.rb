@@ -1,4 +1,5 @@
 require 'thor'
+require 'shellwords'
 require 'aion_cli/commands/avx'
 require 'aion_cli/commands/dawa'
 require 'aion_cli/commands/excel'
@@ -12,30 +13,34 @@ require 'active_support/all'
 
 module AionCLI
   class Main < Thor
+    PROJECT_ROOT = File.expand_path('../..', __dir__)
 
     desc 'update', 'Pull the latest changes'
     def update
-      project_root = File.expand_path(File.join(__FILE__, '../../../'))
-      system("cd #{project_root} && git pull --ff && bundle install")
+      Dir.chdir(PROJECT_ROOT) do
+        system('git', 'pull', '--ff') && system('bundle', 'install')
+      end
     end
 
     desc 'install', 'Install an executable at /usr/local/bin/aion'
     def install
-      project_root = File.expand_path(File.join(__FILE__, '../../../'))
-
-      version_file = %x[rbenv version-file #{project_root}].chomp
+      version_file = %x[rbenv version-file #{PROJECT_ROOT.shellescape}].chomp
       ruby_version = %x[rbenv version-file-read #{version_file}].chomp if version_file.present?
       ruby_version ||= %x[rbenv version-name].chomp
 
-      script_contents = <<-EOS.gsub(/^\s{8}/,'')
+      escaped_project_root = PROJECT_ROOT.shellescape
+      escaped_ruby_version = ruby_version.shellescape
+
+      script_contents = <<~EOS
         #!/usr/bin/env bash
+        set -e
 
         # Switch to ruby #{ruby_version}
-        eval "$(rbenv init -)"
-        rbenv shell #{ruby_version}
+        eval "$(rbenv init - bash)"
+        rbenv shell #{escaped_ruby_version}
 
         # Trigger script
-        BUNDLE_GEMFILE=#{project_root}/Gemfile bundle exec #{project_root}/bin/aion "$@"
+        exec env BUNDLE_GEMFILE=#{escaped_project_root}/Gemfile bundle exec #{escaped_project_root}/bin/aion "$@"
       EOS
 
       path = '/usr/local/bin/aion'
@@ -46,7 +51,7 @@ module AionCLI
       end
 
       File.write(path, script_contents)
-      File.chmod(0755, path)
+      File.chmod(0o755, path)
       say("aion script installed into path #{path}")
     end
 

@@ -18,14 +18,14 @@ class DiscreteLogarithmMultipleProof
   def initialize(commitment, challenge, response)
     @commitment, @challenge, @response = commitment, challenge, response
 
-    (commitment.is_a?(OpenSSL::PKey::EC::Point) &&
-        commitment.on_curve?) or raise ArgumentError, 'commitment is not a valid point.'
+    ((commitment.is_a?(OpenSSL::PKey::EC::Point) &&
+        commitment.on_curve?) || raise(ArgumentError, 'commitment is not a valid point.'))
 
-    (challenge.is_a?(OpenSSL::BN) &&
-        challenge == challenge % CURVE.group.order) or raise ArgumentError, 'challenge is not a valid integer.'
+    ((challenge.is_a?(OpenSSL::BN) &&
+        challenge == challenge % CURVE.group.order) || raise(ArgumentError, 'challenge is not a valid integer.'))
 
-    (response.is_a?(OpenSSL::BN) &&
-        response == response % CURVE.group.order) or raise ArgumentError, 'response is not a valid integer.'
+    ((response.is_a?(OpenSSL::BN) &&
+        response == response % CURVE.group.order) || raise(ArgumentError, 'response is not a valid integer.'))
   end
 
   # Instantiates an {DiscreteLogarithmMultipleProof} from a given string
@@ -73,7 +73,7 @@ class DiscreteLogarithmMultipleProof
     commitment = generators[0]
     for i in 0..n-1
       # commitment = commitment * 1 + generator[i+1] * z[i]
-      commitment = commitment.mul([OpenSSL::BN.new(1), z[i]], [generators[i+1]])
+      commitment = commitment.add(generators[i + 1].mul(z[i]))
     end
     commitment = commitment.mul(commitment_scalar)
 
@@ -115,7 +115,7 @@ class DiscreteLogarithmMultipleProof
     commitment = generators[0]
     for i in 0..n-1
       # commitment = commitment * 1 + generator[i+1] * z[i]
-      commitment = commitment.mul([OpenSSL::BN.new(1), z[i]], [generators[i+1]])
+      commitment = commitment.add(generators[i + 1].mul(z[i]))
     end
     commitment = commitment.mul(commitment_scalar)
 
@@ -178,17 +178,17 @@ class DiscreteLogarithmMultipleProof
     left_hand_side = generators[0]
     for i in 0..n-1
       # left_hand_side = left_hand_side * 1 + generator[i+1] * z[i]
-      left_hand_side = left_hand_side.mul([OpenSSL::BN.new(1), z[i]], [generators[i+1]])
+      left_hand_side = left_hand_side.add(generators[i + 1].mul(z[i]))
     end
     left_hand_side = left_hand_side.mul(@response)
 
     right_hand_side = public_keys[0]
     for i in 0..n-1
       # right_hand_side = right_hand_side * 1 + public_keys[i+1] * z[i]
-      right_hand_side = right_hand_side.mul([OpenSSL::BN.new(1), z[i]], [public_keys[i+1]])
+      right_hand_side = right_hand_side.add(public_keys[i + 1].mul(z[i]))
     end
     # right_hand_side = commitment * 1 + right_hand_side * challenge
-    right_hand_side = @commitment.mul([OpenSSL::BN.new(1), @challenge], [right_hand_side])
+    right_hand_side = @commitment.add(right_hand_side.mul(@challenge))
 
     left_hand_side == right_hand_side
   end
@@ -196,7 +196,7 @@ class DiscreteLogarithmMultipleProof
   # Outputs the proof as a string with all values encoded as hex, concatenated by a comma
   #
   # @return (String) The encoded proof.
-  def to_s()
+  def to_s
     Crypto.point_to_hex(@commitment) + ',' + Crypto.bn_to_hex(@challenge) + ',' + Crypto.bn_to_hex(@response)
   end
 end

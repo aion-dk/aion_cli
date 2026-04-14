@@ -16,14 +16,14 @@ module Crypto
     def initialize(commitment, challenge, response)
       @commitment, @challenge, @response = commitment, challenge, response
 
-      (commitment.is_a?(OpenSSL::PKey::EC::Point) &&
-          commitment.on_curve?) or raise ArgumentError, 'commitment is not a valid point.'
+      ((commitment.is_a?(OpenSSL::PKey::EC::Point) &&
+          commitment.on_curve?) || raise(ArgumentError, 'commitment is not a valid point.'))
 
-      (challenge.is_a?(OpenSSL::BN) &&
-          challenge == challenge % CURVE.group.order) or raise ArgumentError, 'challenge is not a valid integer.'
+      ((challenge.is_a?(OpenSSL::BN) &&
+          challenge == challenge % CURVE.group.order) || raise(ArgumentError, 'challenge is not a valid integer.'))
 
-      (response.is_a?(OpenSSL::BN) &&
-          response == response % CURVE.group.order) or raise ArgumentError, 'response is not a valid integer.'
+      ((response.is_a?(OpenSSL::BN) &&
+          response == response % CURVE.group.order) || raise(ArgumentError, 'response is not a valid integer.'))
     end
 
     # Instantiates an {DiscreteLogarithmProof} from a given string
@@ -96,7 +96,7 @@ module Crypto
     def verify_without_challenge(generator, public_key)
       left_hand_side = generator.mul(@response)
       # right_hand_side = commitment * 1 + public_key * challenge
-      right_hand_side = @commitment.mul([OpenSSL::BN.new(1), @challenge], [public_key])
+      right_hand_side = @commitment.add(public_key.mul(@challenge))
 
       left_hand_side == right_hand_side
     end
@@ -104,7 +104,7 @@ module Crypto
     # Outputs the proof as a string with all values encoded as hex, concatenated by a comma
     #
     # @return (String) The encoded proof.
-    def to_s()
+    def to_s
       Crypto.point_to_hex(@commitment) + ',' + Crypto.bn_to_hex(@challenge) + ',' + Crypto.bn_to_hex(@response)
     end
   end

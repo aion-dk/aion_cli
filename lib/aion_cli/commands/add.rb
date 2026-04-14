@@ -1,4 +1,5 @@
 require 'securerandom'
+require 'date'
 require 'set'
 require 'aion_cli/helpers/application_helper'
 require 'aion_cli/helpers/unique_string_generator'
@@ -52,6 +53,8 @@ module AionCLI
         min = ask_natural_number('Pick the minimum')
         max = ask_natural_number('Pick the maximum')
 
+        raise Thor::Error, 'Maximum must be greater than minimum' unless max > min
+
         generator = UniqueStringGenerator.new do
           (min + SecureRandom.random_number(max - min)).to_s
         end
@@ -67,12 +70,7 @@ module AionCLI
       desc 'age CSV_FILE', 'Add age calculated from CPR birthdate to selected date. DATE defaults to "Today"'
       def age(path)
         date_input = ask_date_string('Input date to calculate age from. (Date defaults "Today" if blank)', true)
-        date = nil
-        if date_input == ""
-          date = Date.today
-        else
-          date = Date.parse(date_input)
-        end
+        date = date_input.empty? ? Date.today : Date.parse(date_input)
         headers, *rows = read_spreadsheet(path)
         index_cpr = ask_header_index(headers, 'Specify CPR column.')
 
