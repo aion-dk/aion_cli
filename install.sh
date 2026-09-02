@@ -77,4 +77,4 @@ echo "Setup complete!"
 #   gem install aion_cli
 
 # Instead we run the install task
-bundle exec aion install
+bundle install && bundle exec aion install
