@@ -24,35 +24,65 @@ module AionCLI
 
     desc 'install', 'Install an executable at /usr/local/bin/aion'
     def install
-      version_file = %x[rbenv version-file #{PROJECT_ROOT.shellescape}].chomp
-      ruby_version = %x[rbenv version-file-read #{version_file}].chomp if version_file.present?
-      ruby_version ||= %x[rbenv version-name].chomp
+      #version_file = %x[rbenv version-file #{PROJECT_ROOT.shellescape}].chomp
+      #ruby_version = %x[rbenv version-file-read #{version_file}].chomp if version_file.present?
+      #ruby_version ||= %x[rbenv version-name].chomp
 
       escaped_project_root = PROJECT_ROOT.shellescape
-      escaped_ruby_version = ruby_version.shellescape
+      #escaped_ruby_version = ruby_version.shellescape
 
       script_contents = <<~EOS
         #!/usr/bin/env bash
         set -e
 
-        # Switch to ruby #{ruby_version}
-        eval "$(rbenv init - bash)"
-        rbenv shell #{escaped_ruby_version}
+        # Switch to ruby #-{ruby_version}
+        #eval "$(rbenv init - bash)"
+        #rbenv shell #-{escaped_ruby_version}
 
         # Trigger script
         exec env BUNDLE_GEMFILE=#{escaped_project_root}/Gemfile bundle exec #{escaped_project_root}/bin/aion "$@"
       EOS
 
-      path = '/usr/local/bin/aion'
+      path = File.expand_path("~/.local/bin/aion")
+      require 'fileutils'
+
+      # 1. Expand the tilde into a real absolute path
+      # 2. Create the directory and any missing parent directories
+      FileUtils.mkdir_p(File.expand_path('~/.local/bin'))
+
+      # Make sure .local/bin is in the path
+      zshrc_path = File.expand_path('~/.zshrc')
+      say("Checking for ~/.local/bin in PATH...")
+      if File.exist?(zshrc_path)
+        if File.read(zshrc_path).include?("\nexport PATH=\"$HOME/.local/bin:$PATH\"\n")
+          say("It's there, we good")
+        else
+          say("adding ~/.local/bin to PATH...")
+          File.open(zshrc_path, "a") do |f|
+            f.write <<~NOTE
+              # Added by aion_cli
+              export PATH="$HOME/.local/bin:$PATH"
+            NOTE
+          end
+        end
+      else
+        say(<<~NOTE)
+          To be able to run the command, you need to add the following to your terminal config file:
+          export PATH="$HOME/.local/bin:$PATH"
+        NOTE
+      end
 
       if File.exist?(path)
         say("#{path} already exists")
         return if no?('Do you want to overwrite?')
       end
 
-      File.write(path, script_contents)
+      File.open(path, "w") do |f|
+        f.write(script_contents)
+      end
       File.chmod(0o755, path)
       say("aion script installed into path #{path}")
+      say("if it says the command 'aion' is unrecoqnized, try restarting the terminal")
     end
 
     method_option :ruby, type: :boolean, desc: 'Also print version of ruby used to run CLI'

@@ -4,6 +4,27 @@ AionCLI is a collection of scripts mainly for handling csv files.
 
 ## Installation
 
+### New? installation instructions
+
+To install the cli, you first need to install the command line tools:
+
+```bash
+xcode-select --install 
+```
+
+Once that is completed, you can install the cli using these commands:
+
+```bash
+mkdir -p ~/repos
+cd ~/repos
+git clone https://github.com/aion-dk/aion_cli.git &&\
+  cd aion_cli &&\
+  chmod +x install.sh &&\
+  ./install.sh
+```
+
+### Previous installation instructions
+
 This project has been modernized for current Ruby and is intended to be Ruby 4-ready.
 At the moment it is verified in this repository with Ruby 3.2.x and updated gems that are compatible with newer Ruby/OpenSSL behavior.
 
