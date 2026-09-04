@@ -42,17 +42,36 @@ else
   echo "asdf ruby plugin already added. Skipping..."
 fi
 
+# Make sure asdf shims are in path
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+
+# Persist the shims PATH entry in ~/.zshrc if it isn't already there
+ASDF_SHIMS_LINE='export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"'
+ZSHRC="$HOME/.zshrc"
+touch "$ZSHRC"
+
+if ! grep -qxF "$ASDF_SHIMS_LINE" "$ZSHRC"; then
+  echo "Adding asdf shims to PATH in $ZSHRC..."
+  {
+    echo ""
+    echo "# asdf shims (added by aion_cli install script)"
+    echo "$ASDF_SHIMS_LINE"
+  } >> "$ZSHRC"
+else
+  echo "asdf shims already configured in $ZSHRC. Skipping..."
+fi
+
 # 4. Install and set global ruby version
 RUBY_VERSION="4.0.5"
+
+echo "Setting global ruby version to $RUBY_VERSION..."
+asdf set --home ruby "$RUBY_VERSION"
 if ! asdf list ruby 2>/dev/null | grep -q "$RUBY_VERSION"; then
   echo "Installing Ruby $RUBY_VERSION..."
   asdf install
 else
   echo "Ruby $RUBY_VERSION is already installed. Skipping..."
 fi
-
-echo "Setting global ruby version to $RUBY_VERSION..."
-asdf set --home ruby "$RUBY_VERSION"
 
 # 5. Install bundler
 # The -i flag checks if the gem is installed quietly
@@ -67,14 +86,10 @@ fi
 # If you uncomment this, using $(brew --prefix icu4c) dynamically finds the right path
 # bundle config build.charlock_holmes --with-icu-dir="$(brew --prefix icu4c)"
 
+# 7. Installing the gem
+
+# build gem and install local file
+bundle install
+bundle exec rake install:local
+
 echo "Setup complete!"
-
-# Installation
-
-# This approach is not available at the moment
-#   gem sources -a https://satan:666@gems.valgservice.dk/
-#
-#   gem install aion_cli
-
-# Instead we run the install task
-bundle install && bundle exec aion install
