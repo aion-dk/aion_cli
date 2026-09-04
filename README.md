@@ -28,9 +28,16 @@ git clone https://github.com/aion-dk/aion_cli.git &&\
 `install.sh` (above) handles everything: Homebrew, asdf, Ruby 4.0.5, and the `aion`
 gem itself. If you already have `asdf` and the required Ruby installed and just want
 to (re)install the gem, from the repo root run:
+```bash
+bundle install && bundle exec rake install:local
+```
 
-    $ bundle install
-    $ bundle exec rake install:local
+### Updating the gem
+To update the gem, pull the latest changes and reinstall
+```bash
+git pull --ff &&\
+bundle install && bundle exec rake install:local
+```
 
 ## Usage
 

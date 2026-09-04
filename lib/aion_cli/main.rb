@@ -13,17 +13,8 @@ require 'active_support/all'
 
 module AionCLI
   class Main < Thor
-    PROJECT_ROOT = File.expand_path('../..', __dir__)
-
     def self.exit_on_failure?
       true
-    end
-
-    desc 'update', 'Pull the latest changes'
-    def update
-      Dir.chdir(PROJECT_ROOT) do
-        system('git', 'pull', '--ff') && system('bundle', 'install')
-      end
     end
 
     method_option :ruby, type: :boolean, desc: 'Also print version of ruby used to run CLI'
