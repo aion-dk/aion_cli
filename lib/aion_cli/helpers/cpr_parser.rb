@@ -1,3 +1,5 @@
+require 'set'
+
 class CPRParser
   SUPPORTED_RECORD_TYPES = [
       '001',  # Personoplysninger

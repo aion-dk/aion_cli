@@ -12,11 +12,11 @@ module Crypto
     def initialize(randomness, ciphertext)
       @randomness, @ciphertext = randomness, ciphertext
 
-      (randomness.is_a?(OpenSSL::PKey::EC::Point) &&
-          randomness.on_curve?) or raise ArgumentError, 'randomness is not a valid point.'
+      ((randomness.is_a?(OpenSSL::PKey::EC::Point) &&
+          randomness.on_curve?) || raise(ArgumentError, 'randomness is not a valid point.'))
 
-      (ciphertext.is_a?(OpenSSL::PKey::EC::Point) &&
-          ciphertext.on_curve?) or raise ArgumentError, 'ciphertext is not a valid point.'
+      ((ciphertext.is_a?(OpenSSL::PKey::EC::Point) &&
+          ciphertext.on_curve?) || raise(ArgumentError, 'ciphertext is not a valid point.'))
     end
 
     # Instantiates an {ElGamalPointCryptogram} from a given string
@@ -46,7 +46,7 @@ module Crypto
     def self.encrypt(message, public_key, randomness)
       randomness_point = CURVE.group.generator.mul(randomness)
       # ciphertext = public_key * randomness + message * 1
-      ciphertext_point = public_key.mul([randomness, OpenSSL::BN.new(1)], [message])
+      ciphertext_point = public_key.mul(randomness).add(message)
 
       ElGamalPointCryptogram.new(randomness_point, ciphertext_point)
     end
@@ -59,13 +59,13 @@ module Crypto
       shared_secret = @randomness.mul(private_key)
       shared_secret.invert!
 
-      @ciphertext.mul([OpenSSL::BN.new(1), OpenSSL::BN.new(1)], [shared_secret])
+      @ciphertext.add(shared_secret)
     end
 
     # Outputs the cryptogram as a string with both values encoded as hex, concatenated by a comma
     #
     # @return (String) The encoded cryptogram.
-    def to_s()
+    def to_s
       Crypto.point_to_hex(@randomness) + ',' + Crypto.point_to_hex(@ciphertext)
     end
   end

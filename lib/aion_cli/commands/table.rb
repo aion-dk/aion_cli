@@ -116,7 +116,7 @@ module AionCLI
             next
           end
 
-          raise Thor::Error, "Duplicate keys in join column for ADDITIONAL_FILE (key: #{key})" if join_b_hash.has_key?(key)
+          raise Thor::Error, "Duplicate keys in join column for ADDITIONAL_FILE (key: #{key})" if join_b_hash.key?(key)
           join_b_hash[key] = values
         end
 
@@ -182,7 +182,7 @@ module AionCLI
             raise Thor::Error, 'Empty value in join column for ADDITIONAL_FILE' unless allow_empty
           end
 
-          raise Thor::Error, "Duplicate key combination in join columns for ADDITIONAL_FILE (key: #{key})" if join_b_hash.has_key?(key)
+          raise Thor::Error, "Duplicate key combination in join columns for ADDITIONAL_FILE (key: #{key})" if join_b_hash.key?(key)
 
           join_b_hash[key] = row[lookup_index_b]
         end

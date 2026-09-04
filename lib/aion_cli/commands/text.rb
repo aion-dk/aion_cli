@@ -1,5 +1,6 @@
 require 'aion_cli/helpers/application_helper'
 require 'aion_cli/helpers/cpr_parser'
+require 'csv'
 
 module AionCLI
   module CLI
@@ -15,7 +16,7 @@ module AionCLI
 
 
 
-        if column_widths and column_widths =~ /^\d+(,\d+)*$/
+        if column_widths && column_widths.match?(/^\d+(,\d+)*$/)
           _column_widths = column_widths.split(',').map(&:to_i)
 
           absolute_path = File.absolute_path(path)
@@ -65,7 +66,7 @@ module AionCLI
           begin
             start_regex = Regexp.new(ask("Specify the regex to start line extract"))
             say "Interpreted as: #{start_regex.inspect}", :green
-          rescue
+          rescue RegexpError
             start_regex = ""
             say "Could not parse regex", :yellow
           end
@@ -74,7 +75,7 @@ module AionCLI
           begin
             stop_regex = Regexp.new(ask("Specify the regex to end line extract"))
             say "Interpreted as: #{stop_regex.inspect}", :green
-          rescue
+          rescue RegexpError
             stop_regex = ""
             say "Could not parse regex", :yellow
           end
@@ -140,7 +141,7 @@ module AionCLI
         ask_output do |csv|
           csv << ['cpr'] + selected_attributes.map(&:to_s)
           records.each do |cpr_no, attributes|
-            csv << [cpr_no] + selected_attributes.map{ |attr_name| attributes[attr_name].try(:strip) }
+            csv << [cpr_no] + selected_attributes.map { |attr_name| attributes[attr_name]&.strip }
           end
         end
       end

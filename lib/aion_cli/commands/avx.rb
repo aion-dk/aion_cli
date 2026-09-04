@@ -109,7 +109,7 @@ module AionCLI
 
 
         paths_rest.each do |path|
-          headers, *rows = read_csv(path)
+          _headers, *rows = read_csv(path)
 
           rows.each do |row|
             id = row[index]

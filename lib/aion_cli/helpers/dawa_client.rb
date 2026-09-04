@@ -1,6 +1,7 @@
 require 'singleton'
 require 'http'
 require 'json'
+require 'stringio'
 
 module AionCLI
   class DAWAClient
@@ -76,8 +77,8 @@ module AionCLI
     # @return a list of names
     # @raise StandardError if a name was not found
     def municipality_names(codes)
-      pairs = Hash[ municipalities.map { |o| [o['kode'].to_i, o['navn']] } ]
-      codes.map { |code| pairs[code] or raise 'Name not found' }
+      pairs = municipalities.to_h { |municipality| [municipality['kode'].to_i, municipality['navn']] }
+      codes.map { |code| pairs.fetch(code) { raise 'Name not found' } }
     end
 
 
@@ -88,7 +89,7 @@ module AionCLI
         return JSON.parse(dawa_response)
       rescue JSON::ParserError => e
         $stderr << "Error occured when attempting to parse response from DAWA: #{e.message}\nRetrying...\n"
-      rescue => e
+      rescue StandardError => e
         $stderr << "Error occured: #{e.message}\nRetrying...\n"
       end
 

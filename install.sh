@@ -1,48 +1,95 @@
-#! /bin/bash
+#!/bin/bash
 
-# Install homebrew
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# 1. Install Homebrew
+if ! command -v brew &> /dev/null; then
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# required packages for OSx
+  # Ensure brew is in PATH for the remainder of the script
+  if [[ -x "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+else
+  echo "Homebrew is already installed. Skipping..."
+fi
 
-brew install coreutils automake autoconf openssl libyaml readline libxslt libtool unixodbc
+# Helper function for idempotent brew installs
+install_brew_package() {
+  if ! brew list "$1" &> /dev/null; then
+    echo "Installing $1..."
+    brew install "$1"
+  else
+    echo "$1 is already installed. Skipping..."
+  fi
+}
 
-# Install asdf version manager
+# 2. Install required brew packages
+echo "Checking brew dependencies..."
+for pkg in openssl@3 readline libyaml gmp autoconf asdf icu4c xz; do
+  install_brew_package "$pkg"
+done
 
-git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.3.0
+# 3. Add asdf ruby plugin
+if ! asdf plugin list 2>/dev/null | grep -q "^ruby$"; then
+  echo "Adding asdf ruby plugin..."
+  asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
+else
+  echo "asdf ruby plugin already added. Skipping..."
+fi
 
-# Add to bash profile
+# Make sure asdf shims are in path
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 
-echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.bash_profile
-echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.bash_profile
+# Persist the shims PATH entry in ~/.zshrc if it isn't already there
+ASDF_SHIMS_LINE='export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"'
+ZSHRC="$HOME/.zshrc"
+touch "$ZSHRC"
 
-# Add ruby plugin
+if ! grep -qxF "$ASDF_SHIMS_LINE" "$ZSHRC"; then
+  echo "Adding asdf shims to PATH in $ZSHRC..."
+  {
+    echo ""
+    echo "# asdf shims (added by aion_cli install script)"
+    echo "$ASDF_SHIMS_LINE"
+  } >> "$ZSHRC"
+else
+  echo "asdf shims already configured in $ZSHRC. Skipping..."
+fi
 
-asdf plugin-add ruby https://github.com/asdf-vm/asdf-ruby
+# 4. Install and set global ruby version
+RUBY_VERSION="4.0.5"
 
-# set global ruby version
+echo "Setting global ruby version to $RUBY_VERSION..."
+asdf set --home ruby "$RUBY_VERSION"
+if ! asdf list ruby 2>/dev/null | grep -q "$RUBY_VERSION"; then
+  echo "Installing Ruby $RUBY_VERSION..."
+  asdf install
+else
+  echo "Ruby $RUBY_VERSION is already installed. Skipping..."
+fi
 
-asdf global ruby 2.4.2
+# 5. Install bundler
+# The -i flag checks if the gem is installed quietly
+if ! gem list -i "^bundler$" &> /dev/null; then
+  echo "Installing bundler..."
+  gem install bundler
+else
+  echo "Bundler is already installed. Skipping..."
+fi
 
-# Install ruby
+# 6. Configure Bundler
+# If you uncomment this, using $(brew --prefix icu4c) dynamically finds the right path
+# bundle config build.charlock_holmes --with-icu-dir="$(brew --prefix icu4c)"
 
-asdf install
+# 7. Installing the gem
 
-# Brew install charlock_holmes
+# build gem and install local file
+bundle install
+bundle exec rake install:local
 
-brew install icu4c
-
-# Install bundler
-
-gem install bundler
-
-# Configure Bundler to always use the correct arguments when installing
-
-bundle config build.charlock_holmes --with-icu-dir=/usr/local/opt/icu4c
-
-# Installation
-
-gem sources -a https://satan:666@gems.valgservice.dk/
-
-gem install aion_cli
+echo "Setup complete!"

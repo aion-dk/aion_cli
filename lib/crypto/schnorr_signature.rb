@@ -12,11 +12,11 @@ module Crypto
     def initialize(payload, signature)
       @payload, @signature = payload, signature
 
-      (payload.is_a?(OpenSSL::BN) &&
-          payload == payload % CURVE.group.order) or raise ArgumentError, 'payload is not a valid integer.'
+      ((payload.is_a?(OpenSSL::BN) &&
+          payload == payload % CURVE.group.order) || raise(ArgumentError, 'payload is not a valid integer.'))
 
-      (signature.is_a?(OpenSSL::BN) &&
-          signature == signature % CURVE.group.order) or raise ArgumentError, 'signature is not a valid integer.'
+      ((signature.is_a?(OpenSSL::BN) &&
+          signature == signature % CURVE.group.order) || raise(ArgumentError, 'signature is not a valid integer.'))
     end
 
     # Instantiates an {SchnorrSignature} from a given string
@@ -43,7 +43,7 @@ module Crypto
     # @param private_key (OpenSSL::BN) The value of the signing key.
     # @return (SchnorrSignature) a new Schnorr signature
     def self.sign(message, private_key)
-      randomness_pair = CURVE.generate_key
+      randomness_pair = OpenSSL::PKey::EC.generate('secp256k1')
 
       hash_string =
           randomness_pair.public_key.to_octet_string(:compressed) +
@@ -63,7 +63,7 @@ module Crypto
     # @param public_key (OpenSSL::PKey::EC::Point) the value of the signature verification key.
     def verify(message, public_key)
       # randomness_point = generator * signature + public_key * payload
-      randomness_point = CURVE.group.generator.mul([@signature, @payload], [public_key])
+      randomness_point = CURVE.group.generator.mul(@signature).add(public_key.mul(@payload))
 
       hash_string =
           randomness_point.to_octet_string(:compressed) +
@@ -76,7 +76,7 @@ module Crypto
     # Outputs the signature as a string with both values encoded as hex, concatenated by a comma
     #
     # @return (String) The encoded signature.
-    def to_s()
+    def to_s
       Crypto.bn_to_hex(@payload) + ',' + Crypto.bn_to_hex(@signature)
     end
   end

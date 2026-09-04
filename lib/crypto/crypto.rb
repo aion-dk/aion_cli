@@ -1,5 +1,11 @@
 require 'openssl'
 require 'securerandom'
+require 'digest'
+require 'crypto/discrete_logarithm_equality_proof'
+require 'crypto/discrete_logarithm_multiple_proof'
+require 'crypto/discrete_logarithm_proof'
+require 'crypto/el_gamal_point_cryptogram'
+require 'crypto/el_gamal_scalar_cryptogram'
 require 'crypto/schnorr_signature'
 
 module Crypto
@@ -21,7 +27,7 @@ module Crypto
       public_key = hex_to_point public_key_string
 
       schnorr_signature.verify(message, public_key)
-    rescue => _
+    rescue StandardError
       # In case of any error (fx. malformed parameters) we return false
       false
     end
@@ -42,7 +48,7 @@ module Crypto
     # Generates a key pair as voter credential
     #
     # @return two Strings the private key and the public key
-    def generate_key_pair()
+    def generate_key_pair
       private_key = random_bn(CURVE.group.order)
       public_key = CURVE.group.generator.mul(private_key)
 
@@ -328,7 +334,7 @@ module Crypto
           begin
             point = OpenSSL::PKey::EC::Point.new(CURVE.group, point_bn)
             found = true if point.on_curve?
-          rescue
+          rescue StandardError
             point_bn = point_bn + OpenSSL::BN.new(1)
           end until found
 
@@ -343,7 +349,7 @@ module Crypto
           begin
             point = OpenSSL::PKey::EC::Point.new(CURVE.group, point_bn)
             found = true if point.on_curve?
-          rescue
+          rescue StandardError
             point_bn = point_bn + OpenSSL::BN.new(1)
           end until found
 
@@ -371,7 +377,7 @@ module Crypto
         point_bn = OpenSSL::BN.new(point_encoding, 16)
         point = OpenSSL::PKey::EC::Point.new(CURVE.group, point_bn)
         found = point.on_curve?
-      rescue
+      rescue StandardError
       end until found
 
       point
@@ -383,7 +389,7 @@ module Crypto
     # @param point_2 (OpenSSL::PKey::EC::Point) The second point
     # @return (OpenSSL::PKey::EC::Point) the resulted point
     def add_points(point_1, point_2)
-      point_1.mul([OpenSSL::BN.new(1), OpenSSL::BN.new(1)], [point_2])
+      point_1.add(point_2)
     end
 
     # Generates a random bn
@@ -399,7 +405,7 @@ module Crypto
     # @param point_string String the hex string
     # @return (OpenSSL::PKey::EC::Point) the point
     def hex_to_point(point_string)
-      if point_string == '00' or point_string == '0' or point_string == ''
+      if point_string == '00' || point_string == '0' || point_string == ''
         # point = infinity_point
         point = OpenSSL::PKey::EC::Point.new(CURVE.group)
       else
@@ -497,7 +503,7 @@ module Crypto
     # @param empty_cryptogram_string String with the empty cryptogram
     # @param encryption_key_string String with the encryption key
     # @return a the final vote cryptogram and value of the randomizer
-    def encrypt_vote (vote_string, empty_cryptogram_string, encryption_key_string)
+    def encrypt_vote(vote_string, empty_cryptogram_string, encryption_key_string)
       vote = hex_to_point vote_string
       empty_cryptogram = ElGamalPointCryptogram.from_s empty_cryptogram_string
       encryption_key = hex_to_point encryption_key_string
@@ -525,7 +531,7 @@ module Crypto
     #
     # @param secret_string The private key of the proof as a string
     # @return the proof as a string
-    def generate_discrete_logarithm_proof (secret_string)
+    def generate_discrete_logarithm_proof(secret_string)
       secret = hex_to_bn(secret_string)
 
       proof = Crypto::DiscreteLogarithmProof.generate(CURVE.group.generator, secret)
