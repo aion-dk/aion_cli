@@ -4,7 +4,7 @@ AionCLI is a collection of scripts mainly for handling csv files.
 
 ## Installation
 
-### New? installation instructions
+### Installation instructions
 
 To install the cli, you first need to install the command line tools:
 
@@ -23,65 +23,44 @@ git clone https://github.com/aion-dk/aion_cli.git &&\
   ./install.sh
 ```
 
-### Previous installation instructions
+### Manual installation
 
-This project has been modernized for current Ruby and is intended to be Ruby 4-ready.
-At the moment it is verified in this repository with Ruby 3.2.x and updated gems that are compatible with newer Ruby/OpenSSL behavior.
+`install.sh` (above) handles everything: Homebrew, asdf, Ruby 4.0.5, and the `aion`
+gem itself. If you already have `asdf` and the required Ruby installed and just want
+to (re)install the gem, from the repo root run:
 
-Make sure you have `rbenv` installed. This can be done through Homebrew.
-
-Follow the instructions on how to setup homebrew:
-https://brew.sh/index_da
-
-After this, install rbenv using the following command:
-
-    $ brew install rbenv ruby-build
-
-Follow the instructions on how to setup rbenv:
-https://github.com/rbenv/rbenv#homebrew-on-macos
-
-Install a recent Ruby version to use:
-
-    $ rbenv install 3.2.2
-
-Clone the repository to some folder, and navigate to it:
-
-    $ git clone https://github.com/aion-dk/aion_cli.git 
-    $ cd aion_cli
-
-Specify an installed Ruby version to use:
-
-    $ rbenv local 3.2.2
-    
-Install Bundler, install gems, and install the `aion` script:
-
-    $ gem install bundler
     $ bundle install
-    $ bundle exec aion install
-
-You should now be ready to go.
+    $ bundle exec rake install:local
 
 ## Usage
 
     $ aion
 
 ### AVX usage
-1. Generate n credential pairs, which consist of an election code and a public key. The credential pairs will be printed 
+1. Generate n credential pairs, which consist of an election code and a public key. The credential pairs will be printed
 in the terminal. The following command takes as arguments:
    - n, the number of credential pairs
    ```
-   $ aion avx generate n
+   $ aion avx credentials_print n
    ```
 
-2. Reads a csv file and generate credential pairs for each entry of the file. Generates two new files with the initial
+2. Reads a csv file and generates credential pairs for each entry of the file. Generates two new files with the initial
 content plus an extra column for election code or public key, respectively.
 The following command takes as arguments:
     - the path to the csv file
    ```
-   $ aion avx generate_in_file file_path
+   $ aion avx credentials_generate file_path
    ```
 
-3. Combine multiple public key files into one main public key file. The input files are the ones received from each
+3. Reads a csv file and computes public keys from an existing election code column. The script has an interactive
+behaviour and the user needs to specify which column to use as election codes.
+The following command takes as arguments:
+   - the path to the csv file
+   ```
+   $ aion avx credentials_compute file_path
+   ```
+
+4. Combine multiple public key files into one main public key file. The input files are the ones received from each
 credential authority. The output public key file is the one that needs to be imported into the AVX system.
 The script has an interactive behaviour and the user needs to specify the column used as the voter identifier. The user
 also needs to specify the name of the output file.
@@ -90,5 +69,10 @@ from all files is consistent (the identifier column is identical in all files).
 The following command takes as arguments:
    - a list of all the paths to the public key files, separated by space
    ```
-   $ aion avx aggregate_public_keys file1_path file2_path file3_path
+   $ aion avx credentials_aggregate file1_path file2_path file3_path
+   ```
+
+5. Interactively compute one aggregated public key from a given number of election codes entered at the prompt.
+   ```
+   $ aion avx one_quick
    ```
