@@ -39,6 +39,36 @@ git pull --ff &&\
 bundle install && bundle exec rake install:local
 ```
 
+## Configuration
+
+`aion` reads its settings from environment variables first, then from
+`~/.config/aion/config.yml`. Secrets are never stored in this repository.
+
+The address commands (`aion dawa`, `aion data validate`) require a Datafordeler
+API key. Register a free account at <https://datafordeler.dk> and create a
+"tjenestebruger" to obtain one.
+
+```bash
+mkdir -p ~/.config/aion
+cp config.yml.example ~/.config/aion/config.yml
+chmod 600 ~/.config/aion/config.yml
+$EDITOR ~/.config/aion/config.yml
+```
+
+```yaml
+datafordeler_api_key: "your-key-here"
+```
+
+Or, equivalently, as an environment variable:
+
+```bash
+export DATAFORDELER_API_KEY="your-key-here"
+```
+
+Commands that need the key exit with setup instructions when it is missing.
+Point `AION_CONFIG` at a different file to keep several environments side by
+side.
+
 ## Usage
 
     $ aion
