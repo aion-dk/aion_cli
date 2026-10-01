@@ -1,4 +1,5 @@
 require 'aion_cli/version'
+require 'aion_cli/helpers/config'
 require 'aion_cli/main'
 
 module AionCLI

@@ -1,5 +1,5 @@
 require 'aion_cli/helpers/application_helper'
-require 'aion_cli/helpers/dawa_client'
+require 'aion_cli/helpers/datafordeler_client'
 
 module AionCLI
   module CLI
@@ -13,7 +13,7 @@ module AionCLI
 
         column_index = ask_header_index(headers,"Pick the address-column to validate:")
 
-        dawa_client = AionCLI::DAWAClient.instance
+        dawa_client = AionCLI::DatafordelerClient.instance
 
         ask_output do |csv|
           csv << headers + ['DAWA-GUID']

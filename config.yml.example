@@ -1,0 +1,22 @@
+# Copy this file to ~/.config/aion/config.yml and fill in the values:
+#
+#     mkdir -p ~/.config/aion
+#     cp config.yml.example ~/.config/aion/config.yml
+#     chmod 600 ~/.config/aion/config.yml
+#
+# Every key can also be supplied as an upper-cased environment variable
+# (datafordeler_api_key -> DATAFORDELER_API_KEY), which takes precedence.
+#
+# Do not commit a filled-in copy of this file.
+
+# Required. Your personal Datafordeler API key.
+# Register a free account at https://datafordeler.dk and create a
+# "tjenestebruger" to obtain one.
+datafordeler_api_key: ""
+
+# Optional. Override only if you need to point at different endpoints.
+# datafordeler_graphql_base_url: "https://graphql.datafordeler.dk"
+# datafordeler_dar_version: "v3"
+# datafordeler_dagi_version: "v2"
+# adressevask_base_url: "https://adressevaelger.dk/"
+# adressevask_token: "adressevaelger123"

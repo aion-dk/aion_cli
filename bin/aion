@@ -2,4 +2,9 @@
 
 require 'aion_cli'
 
-AionCLI::Main.start
+begin
+  AionCLI::Main.start
+rescue AionCLI::Config::MissingConfig => e
+  # Print the setup instructions on their own, without a Ruby backtrace.
+  abort(e.message)
+end

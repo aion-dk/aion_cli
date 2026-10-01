@@ -2,7 +2,7 @@ require 'roo'
 require 'csv'
 require 'aion_cli/helpers/preparation_helper'
 require 'aion_cli/helpers/application_helper'
-require 'aion_cli/helpers/dawa_client'
+require 'aion_cli/helpers/datafordeler_client'
 require 'time'
 require 'date'
 require 'aion_cli/helpers/unique_string_generator'
@@ -394,7 +394,7 @@ module AionCLI
         indexes_empty_check = ask_header_indexes(headers, 'Specify which columns you want to check for empty values') if check_empty
         say
 
-        dawa_client = AionCLI::DAWAClient.instance
+        dawa_client = AionCLI::DatafordelerClient.instance
 
         # Iterate through selected validations and perform validation --> output to csv
 

@@ -31,7 +31,7 @@ module AionCLI
     desc 'add COMMANDS', 'Data addition helpers'
     subcommand 'add', AionCLI::CLI::Add
     
-    desc 'dawa COMMANDS', 'DAWA helpers'
+    desc 'dawa COMMANDS', 'Address helpers (Datafordeler)'
     subcommand 'dawa', AionCLI::CLI::Dawa
 
     desc 'excel COMMANDS', 'Excel helpers'
